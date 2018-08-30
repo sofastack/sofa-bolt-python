@@ -1,0 +1,11 @@
+syntax = "proto3";
+option java_package = "com.alipay.rpc.common.service.facade.pb.result";
+option java_multiple_files = true;
+option go_package = "com.alipay.rpc.common.service.facade.pb";
+import "SubServicePbResult.proto";
+
+message ComplexServicePbResult {
+    string result = 1;
+    SubServicePbResult subServicePbResult = 2;
+}
+
