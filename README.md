@@ -1,6 +1,6 @@
 # anthuner(a.k.a. sofa-bolt-python)
 
-anthunder是一个python3实现的BOLT协议库，提供BOLT client和server功能，支持使用BOLT + Protobuf方式的RPC调用。
+anthunder是一个python实现的BOLT协议库，提供BOLT client和server功能，支持使用BOLT + Protobuf方式的RPC调用。
 
 ## requirements
 
