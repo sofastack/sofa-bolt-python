@@ -52,7 +52,7 @@ class SpanContext(object):
             kwargs.update(origin_span_baggage)
         else:
             kwargs['sofaTraceId'] = TraceId(kwargs.pop('sofaTraceId', None))
-            _ids = list(map(int, kwargs.pop('sofaRpcId', '1').split('.')))
+            _ids = list(kwargs.pop('sofaRpcId', '1').split('.'))
             kwargs['sofaRpcId'] = RpcId(*_ids)
         self._baggage = _ImmutableDict(**kwargs)
 

@@ -29,16 +29,23 @@ class RpcId(object):
         span id, represented as `a.b.c...`, where `a`, `b`, `c` are numbers.
 
         :param rpcids: numbers
+        :type rpcids: int or str, last one must be int.
         """
-        for s in rpcids:
-            self._check(s)
-        self.rpcids = list(rpcids) or [1]
+        if not rpcids:
+            self.rpcids = [1]
+        else:
+            def _innertrans(s):
+                try:
+                    return int(s)
+                except ValueError:
+                    return s
+
+            self.rpcids = list(map(_innertrans, rpcids))
+            if not isinstance(self.rpcids[-1], int):
+                raise TypeError("Illigal span id, last segment must be int, not '{}'.".format(self.rpcids[-1]))
+
         self._child_count = 0
         self._parent = None
-
-    def _check(self, number):
-        if not isinstance(number, int):
-            raise TypeError("span id need to be numbers(int)")
 
     def __str__(self):
         return ".".join(map(str, self.rpcids))
