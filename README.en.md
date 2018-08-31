@@ -109,6 +109,6 @@ See LICENSE file.
 
 ## Thirdparty
 
-Part of the mysockpool package uses codes from (urllib3)[https://github.com/urllib3/urllib3] project 
+Part of the mysockpool package uses codes from [urllib3](https://github.com/urllib3/urllib3) project 
 under the term of MIT License. See origin-license.txt under the mysockpool package.
 
