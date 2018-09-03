@@ -20,6 +20,7 @@
 import logging
 from random import randint
 from itertools import cycle, chain
+from six.moves import range
 
 logger = logging.getLogger(__name__)
 

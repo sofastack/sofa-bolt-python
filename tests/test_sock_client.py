@@ -30,3 +30,7 @@ class TestClient(unittest.TestCase):
         addr = _BaseClient("anthunderTestApp")._get_address("com.alipay.rpc.no_such_service")
         print(addr)
         self.assertEqual(addr, ('127.0.0.1', 12220))
+
+
+if __name__ == '__main__':
+    unittest.main()

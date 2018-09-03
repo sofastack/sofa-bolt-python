@@ -5,4 +5,6 @@ requests-mock>=1.5.0
 protobuf>=3.5
 uvloop>=0.10.1; python_version >= '3.5'
 selectors34; python_version == '2.7'
-
+ipaddress; python_version == '2.7'
+mock; python_version == '2.7'
+enum34; python_version == '2.7'

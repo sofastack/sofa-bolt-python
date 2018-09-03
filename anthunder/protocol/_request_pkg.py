@@ -22,9 +22,8 @@
         version0 : 2018/4/28 11:39 by jiaqi.hjq  init
 """
 import struct
-
 from anthunder.helpers.request_id import RequestId
-from anthunder.protocol.constants import PTYPE, CMDCODE
+from .constants import PTYPE, CMDCODE
 from .exceptions import EncodeError
 from ._package_base import BoltPackage
 
