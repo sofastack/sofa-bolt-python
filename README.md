@@ -1,5 +1,9 @@
 # anthuner(a.k.a. sofa-bolt-python)
 
+[![Build Status](https://travis-ci.org/alipay/sofa-bolt-python.svg?branch=master)](https://travis-ci.org/alipay/sofa-bolt-python)
+[![License](https://img.shields.io/badge/license-Apache_2.0-lightgrey.svg)](https://pypi.org/project/anthunder/)
+[![Python](https://img.shields.io/badge/python-2.7%7C3.4%7C3.5%7C3.6-blue.svg)](https://pypi.org/project/anthunder/)
+
 anthunder是一个python实现的BOLT协议库，提供BOLT client和server功能，支持使用BOLT + Protobuf方式的RPC调用。
 
 ## requirements
