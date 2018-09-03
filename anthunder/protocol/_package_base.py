@@ -56,7 +56,7 @@ class BoltPackage(object):
         :type respstatus: int
         """
         self.header = header
-        self._header_bytes = bytes(header)
+        self._header_bytes = header.to_bytes()
         self.content = content
 
         self.proto = PROTO(proto)
@@ -127,15 +127,9 @@ class BoltPackage(object):
             raise DecodeError(e)
 
     @classmethod
-    def parser_generator(cls):
-        yield cls.bolt_header_from_stream
-        yield cls.bolt_content_from_stream
-
-    @classmethod
     def from_stream(cls, stream):
-        func = cls.parser_generator()
-        bh = next(func)(stream)
-        return next(func)(stream[cls.bolt_header_size():], bh)
+        bh = cls.bolt_header_from_stream(stream)
+        return cls.bolt_content_from_stream(stream[cls.bolt_header_size():], bh)
 
     @classmethod
     def bolt_header_size(cls):

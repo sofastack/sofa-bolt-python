@@ -25,11 +25,18 @@ import unittest
 
 from anthunder.command.heartbeat import HeartbeatRequest, HeartbeatResponse
 from anthunder.protocol import BoltResponse, BoltRequest, SofaHeader
+from anthunder.protocol._sofa_header import _str_to_bytes_with_len
 from anthunder.protocol.constants import PTYPE, CMDCODE, RESPSTATUS
 from .proto.python import SampleServicePbResult_pb2, SampleServicePbRequest_pb2
 
 
 class TestBoltPackage(unittest.TestCase):
+    def test_str_to_bytes_with_len(self):
+        s = "abcdefg"
+        bs = _str_to_bytes_with_len(s)
+        print(bs)
+        self.assertEqual(bs, b'\x00\x00\x00\x07abcdefg')
+
     def test_repr(self):
         p = BoltResponse(SofaHeader(a='1', b='2'), b"cdefgab", ptype=PTYPE.ONEWAY, request_id=0,
                          cmdcode=CMDCODE.HEARTBEAT,
@@ -89,6 +96,7 @@ class TestBoltPackage(unittest.TestCase):
         pkg = HeartbeatRequest.new_request()
         print(pkg)
         print(pkg.to_stream())
+        print(pkg.header)
         self.assertEqual(pkg.class_len, 0)
         self.assertEqual(pkg.header_len, 0)
         self.assertEqual(pkg.content_len, 0)
