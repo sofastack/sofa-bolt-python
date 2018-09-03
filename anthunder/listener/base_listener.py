@@ -20,6 +20,7 @@
 import logging
 import threading
 
+from anthunder.exceptions import ServerError
 from anthunder.mesh.mesh_client import MeshClient, PublishServiceRequest, ProviderMetaInfo, ApplicationInfo
 
 logger = logging.getLogger(__name__)
@@ -85,3 +86,7 @@ class BaseListener(object):
     def run_threading(self):
         t = threading.Thread(target=self.run_forever, daemon=True)
         t.start()
+
+
+class NoProcessorError(ServerError):
+    pass

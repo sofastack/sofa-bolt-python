@@ -27,6 +27,7 @@ import socket
 import time
 import ipaddress
 import six
+from six.moves import range
 
 
 class TraceId(object):

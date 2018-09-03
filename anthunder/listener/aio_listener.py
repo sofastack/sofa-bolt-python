@@ -24,6 +24,8 @@ import threading
 import traceback
 import opentracing
 
+from anthunder.listener.base_listener import NoProcessorError
+
 try:
     import uvloop
 
@@ -37,17 +39,13 @@ from concurrent.futures import ThreadPoolExecutor
 
 from anthunder.command.fail_response import FailResponse
 from anthunder.command.heartbeat import HeartbeatResponse
-from anthunder.exceptions import ServerError, ClientError
+from anthunder.exceptions import ClientError
 from anthunder.protocol import BoltRequest, SofaHeader, BoltResponse
 from anthunder.protocol.constants import PTYPE, CMDCODE, RESPSTATUS
 from anthunder.protocol.exceptions import ProtocolError
 from .base_listener import BaseListener, BaseHandler
 
 logger = logging.getLogger(__name__)
-
-
-class NoProcessorError(ServerError):
-    pass
 
 
 class AioThreadpoolRequestHandler(BaseHandler):
@@ -99,7 +97,7 @@ class AioListener(BaseListener):
 
     def run_forever(self):
         """loop thread"""
-        # asyncio.set_event_loop(self._loop)
+        asyncio.set_event_loop(self._loop)
         coro = asyncio.start_server(self._handler_connection, *self.address, loop=self._loop, **self.server_kwargs)
         self._server = self._loop.run_until_complete(coro)
         self._loop.run_forever()

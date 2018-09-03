@@ -34,11 +34,10 @@ from mytracer import tracer
 from anthunder.command.fail_response import FailResponse
 from anthunder.command.heartbeat import HeartbeatResponse
 from anthunder.exceptions import ClientError
-from anthunder.listener.aio_listener import NoProcessorError
 from anthunder.protocol import BoltRequest, SofaHeader
 from anthunder.protocol.constants import CMDCODE, RESPSTATUS
 
-from .base_listener import BaseListener, BaseHandler
+from .base_listener import BaseListener, BaseHandler, NoProcessorError
 
 logger = logging.getLogger(__name__)
 

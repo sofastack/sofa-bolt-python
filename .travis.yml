@@ -1,0 +1,15 @@
+language: python
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+env:
+  - PATH=$HOME/protobuf/bin:$PATH
+before_install:
+  - ./install-protobuf.sh
+install:
+  - pip install -r requirements.txt
+  - pushd tests/proto && protoc --python_out=./python *.proto && popd
+script:
+  - python -m unittest discover .
