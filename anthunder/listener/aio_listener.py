@@ -175,9 +175,15 @@ class AioListener(BaseListener):
         Full duplex model
         Only recv request here, run a new coro to process and send back response in same connection.
         """
+        first_req = True
         while True:
             try:
-                fixed_header_bs = yield from reader.readexactly(BoltRequest.bolt_header_size())
+                try:
+                    fixed_header_bs = yield from reader.readexactly(BoltRequest.bolt_header_size())
+                except asyncio.streams.IncompleteReadError:
+                    if first_req:
+                        raise
+                first_req = False
                 header = BoltRequest.bolt_header_from_stream(fixed_header_bs)
                 call_type = header['ptype']
                 cmdcode = header['cmdcode']
