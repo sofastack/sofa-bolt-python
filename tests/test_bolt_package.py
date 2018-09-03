@@ -38,7 +38,10 @@ class TestBoltPackage(unittest.TestCase):
         s = p.to_stream()
         pr = BoltResponse.from_stream(s)
         self.assertNotEqual(id(p), id(pr))
-        self.assertEqual(p.__dict__, pr.__dict__)
+        self.assertEqual(p.header, pr.header)
+        self.assertEqual(p.content, pr.content)
+        self.assertEqual(p.cmdcode, pr.cmdcode)
+        self.assertEqual(p.request_id, pr.request_id)
         print(pr)
 
         p = BoltRequest(SofaHeader(a='1', b='2'), b"jklmnhi", ptype=PTYPE.ONEWAY, request_id=0,
@@ -48,7 +51,10 @@ class TestBoltPackage(unittest.TestCase):
         s = p.to_stream()
         pr = BoltRequest.from_stream(s)
         self.assertNotEqual(id(p), id(pr))
-        self.assertEqual(p.__dict__, pr.__dict__)
+        self.assertEqual(p.header, pr.header)
+        self.assertEqual(p.content, pr.content)
+        self.assertEqual(p.cmdcode, pr.cmdcode)
+        self.assertEqual(p.request_id, pr.request_id)
         print(pr)
 
     def test_header(self):
