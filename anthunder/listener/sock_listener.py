@@ -18,15 +18,10 @@
    Author : jiaqi.hjq
 """
 import logging
-import threading
 import traceback
 from errno import ECONNRESET
-import six
 
-if six.PY34:
-    from socketserver import StreamRequestHandler, ThreadingTCPServer
-else:
-    from SocketServer import StreamRequestHandler, ThreadingTCPServer
+from six.moves.socketserver import StreamRequestHandler, ThreadingTCPServer
 
 import opentracing
 from mytracer import tracer

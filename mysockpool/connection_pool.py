@@ -21,13 +21,9 @@
    File Name : connection_pool
 """
 import logging
-
-try:
-    import queue
-except ImportError:
-    # python2.7
-    import Queue as queue
 import threading
+
+from six.moves import queue
 
 from .connection import SocketConnection
 from .exceptions import LocationValueError, ClosedPoolError, EmptyPoolError
