@@ -227,8 +227,11 @@ class AioListener(BaseListener):
                                                           RESPSTATUS.CONNECTION_CLOSED).to_stream())
                 except:
                     pass
-                writer.write_eof()
-                yield from writer.drain()
+                try:
+                    writer.write_eof()
+                    yield from writer.drain()
+                except:
+                    pass
                 writer.close()
                 break
 
@@ -239,7 +242,10 @@ class AioListener(BaseListener):
                     writer.write(FailResponse.response_to(header['request_id'], RESPSTATUS.UNKNOWN).to_stream())
                 except:
                     pass
-                writer.write_eof()
-                yield from writer.drain()
+                try:
+                    writer.write_eof()
+                    yield from writer.drain()
+                except:
+                    pass
                 writer.close()
                 break
