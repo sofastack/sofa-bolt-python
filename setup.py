@@ -30,9 +30,17 @@ install_requires = [
     "attrs>=18.1.0",
     "six",
 ]
+tests_requires=[
+    "requests-mock>=1.5.0",
+],
 if sys.version_info <= (3, 3):
     install_requires.extend([
         'selectors34',
+        'enum34',
+        'ipaddress',
+    ])
+    tests_requires.extend([
+        'mock',
     ])
 
 with open('README.en.md', 'r', encoding='utf-8') as f:
@@ -51,9 +59,7 @@ setup(
     install_requires=install_requires,
     include_package_data=True,
     test_suite="tests",
-    tests_requires=[
-        "requests-mock>=1.5.0",
-    ],
+    tests_requires=tests_requires,
     description="an(t)thunder is a sofa-bolt protocol lib.",
     long_description=readme + '\n\n' + history,
     classifiers=[
