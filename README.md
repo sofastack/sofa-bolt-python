@@ -5,6 +5,8 @@
 [![Build Status](https://travis-ci.org/alipay/sofa-bolt-python.svg?branch=master)](https://travis-ci.org/alipay/sofa-bolt-python)
 [![codecov](https://codecov.io/gh/alipay/sofa-bolt-python/branch/master/graph/badge.svg)](https://codecov.io/gh/alipay/sofa-bolt-python)
 
+See [English README](https://github.com/alipay/sofa-bolt-python/blob/master/README.en.md)
+
 anthunder是一个python实现的BOLT协议库，提供BOLT client和server功能，支持使用BOLT + Protobuf方式的RPC调用。
 
 ## requirements
