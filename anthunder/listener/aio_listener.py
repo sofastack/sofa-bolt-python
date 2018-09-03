@@ -99,7 +99,7 @@ class AioListener(BaseListener):
 
     def run_forever(self):
         """loop thread"""
-        # asyncio.set_event_loop(self._loop)
+        asyncio.set_event_loop(self._loop)
         coro = asyncio.start_server(self._handler_connection, *self.address, loop=self._loop, **self.server_kwargs)
         self._server = self._loop.run_until_complete(coro)
         self._loop.run_forever()
