@@ -2,8 +2,9 @@
 
 [![License](https://img.shields.io/badge/license-Apache_2.0-lightgrey.svg)](https://pypi.org/project/anthunder/)
 [![Python](https://img.shields.io/badge/python-2.7%7C3.4%7C3.5%7C3.6-blue.svg)](https://pypi.org/project/anthunder/)
-[![Build Status](https://travis-ci.org/alipay/sofa-bolt-python.svg?branch=master)](https://travis-ci.org/alipay/sofa-bolt-python)
-[![codecov](https://codecov.io/gh/alipay/sofa-bolt-python/branch/master/graph/badge.svg)](https://codecov.io/gh/alipay/sofa-bolt-python)
+[![devstatus](https://img.shields.io/badge/status-beta-orange.svg)](https://pypi.org/project/anthunder/)
+[![Build Status](https://img.shields.io/travis/alipay/sofa-bolt-python/master.svg)](https://travis-ci.org/alipay/sofa-bolt-python)
+[![codecov](https://img.shields.io/codecov/c/gh/alipay/sofa-bolt-python/master.svg)](https://codecov.io/gh/alipay/sofa-bolt-python)
 
 See [English README](https://github.com/alipay/sofa-bolt-python/blob/master/README.en.md)
 
