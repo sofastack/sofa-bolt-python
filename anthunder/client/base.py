@@ -26,12 +26,20 @@ logger = logging.getLogger(__name__)
 
 
 class _BaseClient(object):
+    """
+    Basic class for client implementation. Provides subscribe/unsubscribe method.
+    """
     mesh_service_address = ("127.0.0.1", 12220)
     sofa_default_port = 12200
 
-    def __init__(self, app_name, data_center=None, zone=None):
+    def __init__(self, app_name, data_center=None, zone=None, registry_end_point=None,
+                 is_antsharecloud=False, access_key=None, secret_key=None):
+        """
+        Check ApplicationInfo's comment for params' explanations.
+        """
         try:
-            self._mesh_client = MeshClient(ApplicationInfo(app_name, data_center, zone))
+            self._mesh_client = MeshClient(ApplicationInfo(app_name, data_center, zone, registry_end_point,
+                                                           access_key, secret_key, is_antsharecloud))
             self._mesh_client.startup()
         except:
             logger.error("Fail to startup mesh client")
@@ -44,6 +52,11 @@ class _BaseClient(object):
         return addr
 
     def subscribe(self, *interface):
+        """
+        Subscribe interfaces from mosnd, must called one before call to relevant interface.
+        :param interface: the interface name.
+        :type interface: str
+        """
         if not self._mesh_client:
             return
         for inf in interface:
@@ -54,6 +67,12 @@ class _BaseClient(object):
                 logger.error(e)
 
     def unsubscribe(self, *interface):
+        """
+        Unsubscribe interfaces from mosnd.
+
+        :param interface: the interface name
+        :type interface: str
+        """
         if not self._mesh_client:
             return
         for inf in interface:
