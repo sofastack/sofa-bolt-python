@@ -45,15 +45,26 @@ class BaseHandler(object):
 
 
 class BaseListener(object):
+    """
+    Base class for listener(server) implementation. provides publish/unpublish method.
+    """
     handlerCls = BaseHandler
 
-    def __init__(self, address, app_name, data_center="", zone="", **server_kwargs):
+    def __init__(self, address, app_name, data_center="", zone="", registry_end_point=None,
+                 is_antsharecloud=False, access_key=None, secret_key=None,
+                 **server_kwargs):
+        """
+        :param address: the socket address will be listened on.
+        :type address: tuple (host:str, port:int)
+        Check ApplicationInfo's comment for other params' explanations.
+        """
         self.address = address
         self.app_name = app_name
         self.server_kwargs = server_kwargs
         self.handler = self.handlerCls()
         try:
-            self._mesh_client = MeshClient(ApplicationInfo(app_name, data_center, zone))
+            self._mesh_client = MeshClient(ApplicationInfo(app_name, data_center, zone, registry_end_point,
+                                                           access_key, secret_key, is_antsharecloud))
             self._mesh_client.startup()
         except:
             logger.error("Fail to startup mesh client")
@@ -63,6 +74,9 @@ class BaseListener(object):
         raise NotImplementedError()
 
     def publish(self):
+        """
+        Publish all the interfaces in handler.interface_mapping to mosnd
+        """
         if self._mesh_client:
             for service_name in self.handler.interface_mapping:
                 self._mesh_client.publish(PublishServiceRequest(
@@ -73,6 +87,9 @@ class BaseListener(object):
                                                       appName=self.app_name)))
 
     def unpublish(self):
+        """
+        Revoke all the interfaces in handler.interface_mapping from mosnd.
+        """
         if self._mesh_client:
             for service_name in self.handler.interface_mapping:
                 self._mesh_client.unpublish(service_name)

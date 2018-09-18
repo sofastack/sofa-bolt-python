@@ -42,17 +42,26 @@ class ProviderMetaInfo(object):
 
 @attr.s
 class ApplicationInfo(object):
+    """
+    ApplicationInfo is the request sent to mosnd to register your application.
+    For compatibility reasons, the param with False value (None, empty str, False, etc..) will be dropped
+    when posting to monsd.
+
+    :param: appName: your application's name
+    :param: dataCenter: (optional) the datacenter where the application deployed.
+    :param: zone: (optional) the zone where the application deployed.
+    :param: registryEndPoint: (optional) the configcenter's endpoint address you want to register to.
+    :param: antShareCloud: (optional) is your application deployed at Ant Cloud.
+    :param: accessKey: (must when antShareCloud=True) your access key.
+    :param: secretKey: (must when antShareCloud=True) your secrect key.
+    """
     appName = attr.ib()
     dataCenter = attr.ib(default="")
     zone = attr.ib(default="")
     registryEndPoint = attr.ib(default="")
-
-
-@attr.s
-class AntShareCloudApplicationInfo(ApplicationInfo):
     accessKey = attr.ib(default="")
     secretKey = attr.ib(default="")
-    antShareCloud = attr.ib(default=True)
+    antShareCloud = attr.ib(default=False)
 
 
 class MeshClient(object):
@@ -61,8 +70,8 @@ class MeshClient(object):
 
     def __init__(self, appinfo):
         """
-        :param appinfo:
-        :type appinfo: ApplicationInfo
+        :param appinfo: application infomation data, see ApplicationInfo's comments.
+        :type appinfo: ApplicationInfo, see ApplicationInfo's comments.
         """
         self.appinfo = appinfo
         self._sess = requests.session()
@@ -72,7 +81,7 @@ class MeshClient(object):
     def startup(self):
         with self._rlock:
             if not self._started:
-                self._post("configs/application", attr.asdict(self.appinfo))
+                self._post("configs/application", attr.asdict(self.appinfo, filter=lambda a, v: v))
                 self._started = True
             return self._started
 
