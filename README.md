@@ -1,6 +1,6 @@
 # anthuner(a.k.a. sofa-bolt-python)
 
-[![License](https://img.shields.io/badge/license-Apache_2.0-lightgrey.svg)](https://pypi.org/project/anthunder/)
+[![License](https://img.shields.io/pypi/l/anthunder.svg)](https://pypi.org/project/anthunder/)
 [![Version](https://img.shields.io/pypi/v/anthunder.svg)](https://pypi.org/project/anthunder/)
 [![devstatus](https://img.shields.io/pypi/status/anthunder.svg)](https://pypi.org/project/anthunder/)
 [![Build Status](https://img.shields.io/travis/alipay/sofa-bolt-python/master.svg)](https://travis-ci.org/alipay/sofa-bolt-python)
