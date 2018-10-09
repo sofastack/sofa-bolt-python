@@ -2,11 +2,12 @@
 
 [![License](https://img.shields.io/pypi/l/anthunder.svg)](https://pypi.org/project/anthunder/)
 [![Version](https://img.shields.io/pypi/v/anthunder.svg)](https://pypi.org/project/anthunder/)
+[![Wheel](https://img.shields.io/pypi/wheel/anthunder.svg)](https://pypi.org/project/anthunder/)
+[![Python](https://img.shields.io/pypi/pyversions/anthunder.svg)](https://pypi.org/project/anthunder/)
 [![devstatus](https://img.shields.io/pypi/status/anthunder.svg)](https://pypi.org/project/anthunder/)
 [![Build Status](https://img.shields.io/travis/alipay/sofa-bolt-python/master.svg)](https://travis-ci.org/alipay/sofa-bolt-python)
 [![codecov](https://img.shields.io/codecov/c/gh/alipay/sofa-bolt-python/master.svg)](https://codecov.io/gh/alipay/sofa-bolt-python)
-[![Wheel](https://img.shields.io/pypi/wheel/anthunder.svg)](https://pypi.org/project/anthunder/)
-[![Python](https://img.shields.io/pypi/pyversions/anthunder.svg)](https://pypi.org/project/anthunder/)
+[![codebeat](https://codebeat.co/badges/59c6418c-72a1-4229-b363-686a2640e9d5)](https://codebeat.co/projects/github-com-alipay-sofa-bolt-python-master)
 
 See [English README](https://github.com/alipay/sofa-bolt-python/blob/master/README.en.md)
 
