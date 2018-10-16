@@ -91,18 +91,19 @@ class BoltPackage(object):
         return self.class_len + self.header_len + self.content_len
 
     def validate(self):
-        try:
-            assert isinstance(self.proto, PROTO)
-            assert isinstance(self.ptype, PTYPE)
-            assert isinstance(self.cmdcode, CMDCODE)
-            assert isinstance(self.ver2, VER2)
-            assert isinstance(self.request_id, int)
-            assert isinstance(self.codec, CODEC)
-            assert isinstance(self.class_name, bytes)
-            assert isinstance(self.header, SofaHeader)
-            assert isinstance(self.content, bytes)
-        except AssertionError as e:  # pragma: no cover
-            raise ParamTypeError(e)
+        def _check(obj, need_type):
+            if not isinstance(obj, need_type):
+                raise ParamTypeError("TypeError: must be {}, not {}".format(type(obj), need_type.__name__))
+
+        _check(self.proto, PROTO)
+        _check(self.ptype, PTYPE)
+        _check(self.cmdcode, CMDCODE)
+        _check(self.ver2, VER2)
+        _check(self.request_id, int)
+        _check(self.codec, CODEC)
+        _check(self.class_name, bytes)
+        _check(self.header, SofaHeader)
+        _check(self.content, bytes)
 
     def to_stream(self):  # pragma: no cover
         raise NotImplementedError
