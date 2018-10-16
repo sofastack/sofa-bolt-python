@@ -93,7 +93,7 @@ class BoltPackage(object):
     def validate(self):
         def _check(obj, need_type):
             if not isinstance(obj, need_type):
-                raise ParamTypeError("TypeError: must be {}, not {}".format(type(obj), need_type.__name__))
+                raise ParamTypeError("TypeError: must be {}, not {}".format(need_type.__name__, type(obj)))
 
         _check(self.proto, PROTO)
         _check(self.ptype, PTYPE)
