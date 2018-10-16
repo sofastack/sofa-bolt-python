@@ -20,23 +20,6 @@
    Description : description what the main function of this file
    Change Activity:
         version0 : 2018/4/28 11:36 by jiaqi.hjq  init
-
-    Bootstrap scripts:
-    1. read config
-    2. publish services
-    3. subscribe services
-
-   The services is written in a appointed json configfile by the syntax of below:
-   {
-        'publish': [
-            'com.alipay.pub.service1': "protobuf class1 path",
-            'com.alipay.pub.service2': "protobuf class2 path"
-        ],
-        'subscribe': [
-            'com.alipay.sub.service1': "protobuf class3 path",
-            'com.alipay.sub.service2': "protobuf class4 path"
-        ]
-   }
 """
 
 __all__ = ['Client', 'SockListener', 'BaseService', 'Request', 'SERVICE_MAP']
