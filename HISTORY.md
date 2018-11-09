@@ -1,4 +1,7 @@
 # Release History
+## 0.5.4 (2018-11-09)
+### Bugfixes
+ - fix server errors under python2.7
 
 ## 0.5.3 (2018-08-27)
 ### Feature
