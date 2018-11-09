@@ -31,13 +31,43 @@ from anthunder.command.heartbeat import HeartbeatResponse
 from anthunder.exceptions import ClientError
 from anthunder.protocol import BoltRequest, SofaHeader
 from anthunder.protocol.constants import CMDCODE, RESPSTATUS
+from anthunder.protocol import BoltResponse
 
 from .base_listener import BaseListener, BaseHandler, NoProcessorError
 
 logger = logging.getLogger(__name__)
 
 
-class BoltRequestHandler(StreamRequestHandler, BaseHandler):
+class SockServiceHandler(BaseHandler):
+    """
+    handling service dispatch
+    """
+
+    def handle_request(self, spanctx, service, method, body):
+        """blocking handles request"""
+        try:
+            ServiceCls = self.interface_mapping[service]
+        except KeyError as e:
+            logger.error("Service not found in interface registry: [{}]".format(service))
+            raise NoProcessorError("Service not found in interface registry: [{}]".format(service))
+        try:
+            svc_obj = ServiceCls(spanctx)
+            func = getattr(svc_obj, method)
+        except AttributeError as e:
+            logger.error("No such method[{}]".format(method))
+            raise NoProcessorError("No such method[{}]".format(method))
+
+        return func(body)
+
+    def register_interface(self, interface, service_cls):
+        self.interface_mapping[interface] = service_cls
+
+
+class SockBoltHandler(StreamRequestHandler):
+    """A tcp request handler, handles bolt protocol"""
+
+    service_handler = None  # for service_handler injection, should be a duck type of BaseHandler
+
     def _readexactly(self, bs_cnt):
         bs = b''
         while len(bs) < bs_cnt:
@@ -55,8 +85,6 @@ class BoltRequestHandler(StreamRequestHandler, BaseHandler):
             bs = self._readexactly(header['header_len'])
             sofa_header = SofaHeader.from_bytes(bs)
             body = self._readexactly(header['content_len'])
-            if self.server.ready:
-                self.server.ready.set()
 
             request_id = header['request_id']
 
@@ -85,8 +113,9 @@ class BoltRequestHandler(StreamRequestHandler, BaseHandler):
                 return
 
             spanctx = tracer.extract(opentracing.Format.TEXT_MAP, sofa_header)
-            ret = self.handle_request(spanctx, service, method, body)
-            self.wfile.write(ret)
+            # call servicehandler
+            ret = self.service_handler.handle_request(spanctx, service, method, body)
+            self.wfile.write(BoltResponse.response_to(ret, request_id=request_id).to_stream())
             self.wfile.flush()
 
         except OSError as e:
@@ -96,33 +125,15 @@ class BoltRequestHandler(StreamRequestHandler, BaseHandler):
         except Exception as e:
             logger.error(traceback.format_exc())
 
-    def handle_request(self, spanctx, service, method, body):
-        """blocking handles request"""
-        try:
-            ServiceCls = self.interface_mapping[service]
-        except KeyError as e:
-            logger.error("Service not found in interface registry: [{}]".format(service))
-            raise NoProcessorError("Service not found in interface registry: [{}]".format(service))
-        try:
-            svc_obj = ServiceCls(spanctx)
-            func = getattr(svc_obj, method)
-        except AttributeError as e:
-            logger.error("No such method[{}]".format(method))
-            raise NoProcessorError("No such method[{}]".format(method))
-
-        return func(body)
-
-    def register_interface(self, interface, service_cls):
-        self.interface_mapping[interface] = service_cls
-
 
 class SockListener(BaseListener):
-    ServerCls = ThreadingTCPServer
-    HandlerCls = BoltRequestHandler
+    handlerCls = SockServiceHandler
 
     def __init__(self, *args, **kwargs):
         super(SockListener, self).__init__(*args, **kwargs)
-        self.server = self.ServerCls(self.address, self.HandlerCls)
+        # inject service_handler
+        SockBoltHandler.service_handler = self.handler
+        self.server = ThreadingTCPServer(self.address, SockBoltHandler)
 
     def run_forever(self):
         self.server.serve_forever()
