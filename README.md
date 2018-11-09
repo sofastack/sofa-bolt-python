@@ -1,4 +1,4 @@
-# anthuner(a.k.a. sofa-bolt-python)
+# anthunder(a.k.a. sofa-bolt-python)
 
 [![License](https://img.shields.io/pypi/l/anthunder.svg)](https://pypi.org/project/anthunder/)
 [![Version](https://img.shields.io/pypi/v/anthunder.svg)](https://pypi.org/project/anthunder/)

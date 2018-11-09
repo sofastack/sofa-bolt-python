@@ -1,4 +1,4 @@
-# anthuner(a.k.a. sofa-bolt-python)
+# anthunder(a.k.a. sofa-bolt-python)
 
 anthunder(ant thunder) is a sofa-bolt library written in python. 
 It supports RPC calling via 'sofa-bolt + protobuf' protocol.
