@@ -62,6 +62,7 @@ setup(
     tests_requires=tests_requires,
     description="an(t)thunder is a sofa-bolt protocol lib.",
     long_description=readme + '\n\n' + history,
+    long_description_content_type="text/markdown",
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
