@@ -1,4 +1,8 @@
 # Release History
+## 0.5.5 (2019-03-14)
+### Bugfixes
+ - fix a infinite loop bug when parsing protocol
+
 ## 0.5.4 (2018-11-09)
 ### Bugfixes
  - fix server errors under python2.7
