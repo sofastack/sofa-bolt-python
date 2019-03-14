@@ -27,7 +27,6 @@ from anthunder.command.heartbeat import HeartbeatRequest, HeartbeatResponse
 from anthunder.protocol import BoltResponse, BoltRequest, SofaHeader
 from anthunder.protocol._sofa_header import _str_to_bytes_with_len, _bytes_to_str
 from anthunder.protocol.constants import PTYPE, CMDCODE, RESPSTATUS
-from protocol.exceptions import DecodeError
 from .proto.python import SampleServicePbResult_pb2, SampleServicePbRequest_pb2
 
 
