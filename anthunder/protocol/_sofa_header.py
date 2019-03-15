@@ -70,7 +70,12 @@ def _bytes_to_str(b, coding='utf-8'):
         if 4 > len(b):  # pragma: no cover
             raise DecodeError('decoding bytes to int failed, not enough length')
         l = _bytes2int_be(b[:4])  # length
+        if l == -1:
+            # -1(\xff\xff\xff\xff) is null in java, see issue #2
+            # set l = 0 will take this 4 bytes as b"", and continue to parse rest bytes.
+            l = 0
         if l < 0:
+            # Something went wrong
             raise DecodeError('decoding bytes to str failed, negative content length')
         n = 4 + l  # next point
         if n > len(b):  # pragma: no cover
