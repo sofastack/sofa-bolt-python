@@ -1,5 +1,5 @@
 # Release History
-## 0.5.5 (2019-03-14)
+## 0.5.6 (2019-03-15)
 ### Bugfixes
  - fix a infinite loop bug when parsing protocol
 
