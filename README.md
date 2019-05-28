@@ -17,7 +17,8 @@ anthunder是一个python实现的BOLT协议库，提供BOLT client和server功�
 
 - python3 >= 3.4 (aio classes needs asyncio support)
 - python2.7 (limited support, needs extra 3rd party libraries)
-
+- mosn >= 1.3 (to use with version >= 0.6)
+- mosn < 1.3 (to use with version < 0.6)
 
 ## roadmap
 
