@@ -30,6 +30,9 @@ from anthunder.helpers.singleton import Singleton
 class PublishServiceRequest(object):
     serviceName = attr.ib()
     providerMetaInfo = attr.ib()
+    port = attr.ib()
+    protocolType = attr.ib(default="DEFAULT")
+    onlyPublishInCloud = attr.ib(default=False)
 
 
 @attr.s

@@ -80,6 +80,7 @@ class BaseListener(object):
         if self._mesh_client:
             for service_name in self.handler.interface_mapping:
                 self._mesh_client.publish(PublishServiceRequest(
+                    port=self.address[1],
                     serviceName=service_name,
                     providerMetaInfo=ProviderMetaInfo(protocol="1",
                                                       version="4.0",
