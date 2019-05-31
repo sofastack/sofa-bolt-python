@@ -36,7 +36,7 @@ class TestMeshClient(unittest.TestCase):
     def test_pub(self, session_mock):
         session_mock.post('http://127.0.0.1:13330/services/publish', text=json.dumps(dict(success=True)))
         pubreq = PublishServiceRequest(serviceName="com.alipay.pybolt.test:1.0",
-                                       port=12200,
+                                       port="12200",
                                        providerMetaInfo=ProviderMetaInfo(protocol="1",
                                                                          version="4.0",
                                                                          serializeType="protobuf",
