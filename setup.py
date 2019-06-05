@@ -50,7 +50,7 @@ with open('HISTORY.md', 'r', encoding='utf-8') as f:
 
 setup(
     name='anthunder',
-    version='0.6',
+    version='0.6.1',
     author='wanderxjtu',
     author_email='wanderhuang@gmail.com',
     url='https://github.com/alipay/sofa-bolt-python',
