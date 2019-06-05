@@ -58,6 +58,7 @@ class AioThreadpoolRequestHandler(BaseHandler):
 
     def handle_request(self, spanctx, service, method, body):
         """do not run heavy job here, just put payloads to executors and return future object"""
+        logger.info("receive biz request of {}:{}".format(service, method))
         try:
             ServiceCls = self.interface_mapping[service]
         except KeyError as e:
@@ -71,6 +72,7 @@ class AioThreadpoolRequestHandler(BaseHandler):
             raise NoProcessorError("No such method[{}]".format(method)) from e
 
         future = self.executor.submit(func, body)
+        logger.info("biz request submitted to function({})".format(func))
         return future
 
     def register_interface(self, interface, service_cls):
@@ -100,10 +102,12 @@ class AioListener(BaseListener):
         asyncio.set_event_loop(self._loop)
         coro = asyncio.start_server(self._handler_connection, *self.address, loop=self._loop, **self.server_kwargs)
         self._server = self._loop.run_until_complete(coro)
+        logger.info("Aio Listener initialized, entering event loop")
         self._loop.run_forever()
 
     def shutdown(self):
         """quit the server loop"""
+        logger.info("Aio Listener shutting down")
         if self._loop and self._server:
             self._server.close()
             asyncio.run_coroutine_threadsafe(self._server.wait_closed(), self._loop)
@@ -173,6 +177,7 @@ class AioListener(BaseListener):
         Full duplex model
         Only recv request here, run a new coro to process and send back response in same connection.
         """
+        logger.info("connection created.")
         first_req = True
         while True:
             try:
@@ -182,17 +187,23 @@ class AioListener(BaseListener):
                     if first_req:
                         raise
                 first_req = False
+                logger.debug("received bolt header({})".format(fixed_header_bs))
                 header = BoltRequest.bolt_header_from_stream(fixed_header_bs)
                 call_type = header['ptype']
                 cmdcode = header['cmdcode']
 
                 class_name = yield from reader.readexactly(header['class_len'])
+                logger.debug("received classname({})".format(class_name))
 
                 bs = yield from reader.readexactly(header['header_len'])
+                logger.debug("received sofa header({})".format(bs))
+
                 sofa_header = SofaHeader.from_bytes(bs)
                 body = yield from reader.readexactly(header['content_len'])
+                logger.debug("received sofa body({})".format(body))
 
                 if cmdcode == CMDCODE.HEARTBEAT:
+                    logger.info("received heartbeat")
                     asyncio.ensure_future(
                         self._write_msg(writer, HeartbeatResponse.response_to(header['request_id']).to_stream()))
                     continue
@@ -203,22 +214,23 @@ class AioListener(BaseListener):
                 if class_name != "com.alipay.sofa.rpc.core.request.SofaRequest".encode():
                     raise ClientError("wrong class_name:[{}]".format(class_name))
 
+                logger.debug("dispatching request[{}]".format(header['request_id']))
                 asyncio.ensure_future(self._dispatch(call_type, header['request_id'], sofa_header, body,
                                                      timeout_ms=header['timeout'], writer=writer))
             except ClientError as e:
-                logger.error(str(e))
+                logger.error(str(e) + " returning CLIENT_SEND_ERROR")
                 yield from self._write_msg(writer, FailResponse.response_to(header['request_id'],
                                                                             RESPSTATUS.CLIENT_SEND_ERROR).to_stream())
                 continue
 
             except ProtocolError as e:
-                logger.error(str(e))
+                logger.error(str(e) + " returning CODEC_EXCEPTION")
                 yield from self._write_msg(writer, FailResponse.response_to(header['request_id'],
                                                                             RESPSTATUS.CODEC_EXCEPTION).to_stream())
                 continue
 
             except EOFError as e:
-                logger.info("Connection closed: {}".format(e))
+                logger.error("Read EOF, Connection closed: {}".format(e))
                 try:
                     yield from writer.drain()  # clean the buffer, avoid backpressure
                     writer.write(FailResponse.response_to(header['request_id'],
@@ -234,6 +246,7 @@ class AioListener(BaseListener):
                 break
 
             except Exception:
+                logger.error("Unknow exception, close connection")
                 logger.error(traceback.format_exc())
                 try:
                     yield from writer.drain()  # clean the buffer, avoid backpressure
