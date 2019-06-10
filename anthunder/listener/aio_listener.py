@@ -140,7 +140,7 @@ class AioListener(BaseListener):
             yield from self._write_msg(writer,
                                        FailResponse.response_to(request_id, RESPSTATUS.SERVER_EXCEPTION).to_stream())
             return
-        if PTYPE.ONEWAY.value == call_type:
+        if PTYPE.ONEWAY == call_type:
             # Just return future
             return future
 
@@ -202,13 +202,13 @@ class AioListener(BaseListener):
                 body = yield from reader.readexactly(header['content_len'])
                 logger.debug("received sofa body({})".format(body))
 
-                if cmdcode == CMDCODE.HEARTBEAT.value:
+                if cmdcode == CMDCODE.HEARTBEAT:
                     logger.info("received heartbeat")
                     asyncio.ensure_future(
                         self._write_msg(writer, HeartbeatResponse.response_to(header['request_id']).to_stream()))
                     continue
 
-                if cmdcode == CMDCODE.RESPONSE.value:
+                if cmdcode == CMDCODE.RESPONSE:
                     raise ClientError("wrong cmdcode:[{}]".format(cmdcode))
 
                 if class_name != "com.alipay.sofa.rpc.core.request.SofaRequest".encode():

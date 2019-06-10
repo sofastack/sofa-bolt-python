@@ -34,8 +34,8 @@ class BoltPackage(object):
     bolt_headers = ()
 
     def __init__(self, header, content,
-                 proto=PROTO.BOLT.value, ptype=None, cmdcode=None, ver2=VER2.REMOTING.value, request_id=None,
-                 codec=CODEC.PROTOBUF.value, timeout=None, respstatus=0, **kwargs):
+                 proto=PROTO.BOLT, ptype=None, cmdcode=None, ver2=VER2.REMOTING, request_id=None,
+                 codec=CODEC.PROTOBUF, timeout=None, respstatus=0, **kwargs):
         """
         See init's docstring for definition of params
         :param class_name:

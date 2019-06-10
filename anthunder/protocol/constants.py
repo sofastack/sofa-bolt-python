@@ -21,36 +21,36 @@
    Change Activity:
         version0 : 2018/4/28 11:47 by jiaqi.hjq  init
 """
-from enum import Enum
+from enum import IntEnum
 
 
-class PROTO(Enum):
+class PROTO(IntEnum):
     BOLT = 1
 
 
-class PTYPE(Enum):
+class PTYPE(IntEnum):
     RESPONSE = 0
     REQUEST = 1
     ONEWAY = 2
 
 
-class CMDCODE(Enum):
+class CMDCODE(IntEnum):
     HEARTBEAT = 0
     REQUEST = 1
     RESPONSE = 2
 
 
-class VER2(Enum):
+class VER2(IntEnum):
     REMOTING = 1
 
 
-class CODEC(Enum):
+class CODEC(IntEnum):
     HESSIAN = 1
     PROTOBUF = 11
     JAVA = 2
 
 
-class RESPSTATUS(Enum):
+class RESPSTATUS(IntEnum):
     SUCCESS = 0x0000
     ERROR = 0x0001
     SERVER_EXCEPTION = 0x0002

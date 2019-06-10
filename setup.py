@@ -32,7 +32,7 @@ install_requires = [
 ]
 tests_requires=[
     "requests-mock>=1.5.0",
-],
+]
 if sys.version_info <= (3, 3):
     install_requires.extend([
         'selectors34',

@@ -38,8 +38,8 @@ class BoltRequest(BoltPackage):
         self.validate()
         try:
             bodyfmt = "%ds%ds%ds" % (self.class_len, self.header_len, self.content_len)
-            return struct.pack(self.fmt + bodyfmt, self.proto.value, self.ptype.value, self.cmdcode.value,
-                               self.ver2.value, self.request_id, self.codec.value, self.timeout,
+            return struct.pack(self.fmt + bodyfmt, self.proto, self.ptype, self.cmdcode,
+                               self.ver2, self.request_id, self.codec, self.timeout,
                                self.class_len, self.header_len, self.content_len,
                                self.class_name, self._header_bytes, self.content)
         except Exception as e:  # pragma: no cover
