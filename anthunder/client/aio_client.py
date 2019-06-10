@@ -65,6 +65,7 @@ class AioClient(_BaseClient):
         t.start()
         if self._mesh_client:
             # ensure mesh client init success, and we will connect to mesh_service_address
+            logger.debug("has mesh client, start a heartbeat thread")
             asyncio.run_coroutine_threadsafe(self._heartbeat_timer(self._get_address(None)), self._loop)
         logger.debug("client coro thread started")
         return t

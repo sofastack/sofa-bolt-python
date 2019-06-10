@@ -63,11 +63,14 @@ class Client(_BaseClient):
                                   {'rpc_trace_context.traceId': 'xxxxx', ...}
         :param kwargs:
         """
+        # FIXME spanctx might be None here
+        logger.debug("Calling interface {}, spanctx: {}".format(interface, spanctx.baggage))
         header = SofaHeader.build_header(spanctx, interface, method_name, target_app=target_app, uid=uid,
                                          **sofa_headers_extra)
         p = BoltRequest.new_request(header, content, timeout_ms=timeout_ms or -1, ptype=bolt_ptype)
         conn = self._get_pool(interface).get_conn()
         conn.send(p.to_stream())
+        logger.debug("Called interface {}, request_id: {}".format(interface, p.request_id))
         return p.request_id, conn
 
     def _get_pool(self, interface):
@@ -124,4 +127,5 @@ class Client(_BaseClient):
         return resp.content
 
     def invoke_async(self, interface, method_name, content, spanctx=None, callback=None, **kw):
+        logger.warning("Invoke async to interface {}, not supported yet".format(interface))
         pass
