@@ -17,7 +17,6 @@
    File Name : test_server
    Author : jiaqi.hjq
 """
-import asyncio
 import unittest
 import six
 import logging
@@ -28,6 +27,7 @@ from anthunder.protocol.constants import RESPSTATUS
 logger = logging.getLogger(__name__)
 
 if six.PY34:
+    import asyncio
     import concurrent.futures
     import functools
     import threading
