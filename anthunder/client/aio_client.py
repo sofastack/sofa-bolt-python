@@ -63,7 +63,9 @@ class AioClient(_BaseClient):
 
         t = threading.Thread(target=_t, daemon=True)
         t.start()
-        asyncio.run_coroutine_threadsafe(self.invoke_heartbeat(), self._loop)
+        if self._mesh_client:
+            # ensure mesh client init success, and we will connect to mesh_service_address
+            asyncio.run_coroutine_threadsafe(self._heartbeat_timer(self._get_address(None)), self._loop)
         logger.debug("client coro thread started")
         return t
 
@@ -115,18 +117,30 @@ class AioClient(_BaseClient):
         return _inner
 
     @asyncio.coroutine
-    def invoke_heartbeat(self, interval=30):
+    def _heartbeat_timer(self, address, interval=30):
+        """Invoke heartbeat periodly"""
         while True:
             yield from asyncio.sleep(interval)
-            pkg = HeartbeatRequest.new_request()
-            resp = yield from self.invoke(pkg)
-            if resp.request_id != pkg.request_id:
-                logger.error("heartbeat response request_id({}) mismatch with request({}).".format(resp.request_id,
-                                                                                                   pkg.request_id))
-                continue
-            if resp.respstatus != RESPSTATUS.SUCCESS:
-                logger.error("heartbeat response status ({}) on request({}).".format(resp.respstatus, resp.request_id))
-                continue
+            yield from self.invoke_heartbeat(address)
+
+    @asyncio.coroutine
+    def invoke_heartbeat(self, address):
+        """
+        Send heartbeat to server
+
+        :return bool, if the server response properly.
+        TODO: to break the connection if server response wrongly
+        """
+        pkg = HeartbeatRequest.new_request()
+        resp = yield from self.invoke(pkg, address=address)
+        if resp.request_id != pkg.request_id:
+            logger.error("heartbeat response request_id({}) mismatch with request({}).".format(resp.request_id,
+                                                                                               pkg.request_id))
+            return False
+        if resp.respstatus != RESPSTATUS.SUCCESS:
+            logger.error("heartbeat response status ({}) on request({}).".format(resp.respstatus, resp.request_id))
+            return False
+        return True
 
     @asyncio.coroutine
     def _get_connection(self, address):
@@ -139,37 +153,42 @@ class AioClient(_BaseClient):
             raise
 
     @asyncio.coroutine
-    def invoke(self, request: BoltRequest):
-        """A request response wrapper"""
-        event = yield from self._send_request(request)
+    def invoke(self, request: BoltRequest, *, address=None):
+        """
+        A request response wrapper
+        :param address: a inet address, currently only for heartbeat request
+        """
+        address = address or self._get_address(request.header['service'])
+
+        event = yield from self._send_request(request, address=address)
         if event is None:
             return
         yield from event.wait()
         return self.response_mapping.pop(request.request_id)
 
     @asyncio.coroutine
-    def _send_request(self, request: BoltRequest):
+    def _send_request(self, request: BoltRequest, *, address):
         """
         send request and put request_id in request_mapping for response match
         :param request:
+        :param address: a inet address, currently only for heartbeat request
         :return:
         """
         assert isinstance(request, BoltRequest)
-        addr = self._get_address(request.header['service'])
 
         @asyncio.coroutine
         def _send(retry=3):
             if retry <= 0:
                 raise PyboltError("send request failed.")
-            readtask, writer = yield from self._get_connection(addr)
+            readtask, writer = yield from self._get_connection(address)
             try:
                 yield from writer.drain()  # avoid back pressure
                 writer.write(request.to_stream())
                 yield from writer.drain()
             except Exception as e:
-                logger.error("Request sent to {} failed: {}, may try again.".format(addr, e))
+                logger.error("Request sent to {} failed: {}, may try again.".format(address, e))
                 readtask.cancel()
-                self.connection_mapping.pop(addr)
+                self.connection_mapping.pop(address)
                 yield from _send(retry - 1)
 
         try:
