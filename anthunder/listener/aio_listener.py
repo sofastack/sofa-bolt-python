@@ -185,7 +185,11 @@ class AioListener(BaseListener):
                     fixed_header_bs = yield from reader.readexactly(BoltRequest.bolt_header_size())
                 except asyncio.streams.IncompleteReadError:
                     if first_req:
-                        raise
+                        # just connected, log an error
+                        logging.error("Connection lost on first request")
+                    # break the loop
+                    raise
+
                 first_req = False
                 logger.debug("received bolt header({})".format(fixed_header_bs))
                 header = BoltRequest.bolt_header_from_stream(fixed_header_bs)
@@ -203,7 +207,7 @@ class AioListener(BaseListener):
                 logger.debug("received sofa body({})".format(body))
 
                 if cmdcode == CMDCODE.HEARTBEAT:
-                    logger.info("received heartbeat")
+                    logger.info("received heartbeat, request_id={}".format(header['request_id']))
                     asyncio.ensure_future(
                         self._write_msg(writer, HeartbeatResponse.response_to(header['request_id']).to_stream()))
                     continue
@@ -230,7 +234,7 @@ class AioListener(BaseListener):
                 continue
 
             except EOFError as e:
-                logger.error("Read EOF, Connection closed: {}".format(e))
+                logger.warning("Connection closed by remote: {}".format(e))
                 try:
                     yield from writer.drain()  # clean the buffer, avoid backpressure
                     writer.write(FailResponse.response_to(header['request_id'],
