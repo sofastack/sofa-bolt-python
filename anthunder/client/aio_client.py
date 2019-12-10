@@ -213,6 +213,7 @@ class AioClient(_BaseClient):
         :param reader:
         :return:
         """
+        logger.debug("_recv_responce coro started.")
         while True:
             pkg = None
             try:
@@ -223,6 +224,7 @@ class AioClient(_BaseClient):
                 if pkg.class_name != BoltResponse.class_name:
                     raise ServerError("wrong class_name:[{}]".format(pkg.class_name))
                 if pkg.cmdcode == CMDCODE.HEARTBEAT:
+                    logger.info("[heartbeat] received a heartbeat response.")
                     continue
                 elif pkg.cmdcode == CMDCODE.REQUEST:
                     # raise error, the connection will be dropped
@@ -230,6 +232,8 @@ class AioClient(_BaseClient):
                 if pkg.respstatus != RESPSTATUS.SUCCESS:
                     raise ServerError.from_statuscode(pkg.respstatus)
                 if pkg.request_id not in self.request_mapping:
+                    logger.info("[package ignored] request_id {} not found in request_mapping, this usually is"
+                                " a async/oneway call's response package, won't notify sender")
                     continue
                 self.response_mapping[pkg.request_id] = pkg
 
