@@ -64,9 +64,11 @@ class AioClient(_BaseClient):
         t = threading.Thread(target=_t, daemon=True)
         t.start()
         if self._mesh_client:
-            # ensure mesh client init success, and we will connect to mesh_service_address
-            logger.debug("has mesh client, start a heartbeat thread")
-            asyncio.run_coroutine_threadsafe(self._heartbeat_timer(self._get_address(None)), self._loop)
+            # ensure mesh client init success, and we will connect to mesh_service_address using a heartbeat request
+            logger.debug("has mesh client, send a heartbeat")
+            asyncio.run_coroutine_threadsafe(self.invoke_heartbeat(self._get_address(None)), self._loop)
+        # run heartbeat every 30secs
+        asyncio.run_coroutine_threadsafe(self._heartbeat_timer(), self._loop)
         logger.debug("client coro thread started")
         return t
 
@@ -117,11 +119,15 @@ class AioClient(_BaseClient):
 
         return _inner
 
-    async def _heartbeat_timer(self, address, interval=30):
-        """Invoke heartbeat periodly"""
+    async def _heartbeat_timer(self, interval=30):
+        """Invoke heartbeat periodly, for every address in connection_mapping"""
         while True:
             await asyncio.sleep(interval)
-            await self.invoke_heartbeat(address)
+            for addr in self.connection_mapping:
+                succ = await self.invoke_heartbeat(addr)
+                if not succ:
+                    _, w = self.connection_mapping.pop(addr)
+                    w.close()
 
     async def invoke_heartbeat(self, address):
         """
