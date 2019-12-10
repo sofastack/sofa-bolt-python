@@ -160,9 +160,11 @@ class AioClient(_BaseClient):
         :param address: a inet address, currently only for heartbeat request
         """
         address = address or self._get_address(request.header['service'])
+        logger.debug("invoke to address: {}".format(address))
 
         event = yield from self._send_request(request, address=address)
         if event is None:
+            logger.debug("no related event, should be a async/oneway call, return now")
             return
         yield from event.wait()
         return self.response_mapping.pop(request.request_id)
@@ -192,18 +194,23 @@ class AioClient(_BaseClient):
                 self.connection_mapping.pop(address)
                 yield from _send(retry - 1)
 
+        # generate event object first, ensure every successfully sent request has a event
+        self.request_mapping[request.request_id] = asyncio.Event()
         try:
             yield from _send()
         except PyboltError:
+            logger.error("failed to send request {}".format(request.request_id))
+            self.request_mapping.pop(request.request_id)
             return
         except Exception:
             logger.error(traceback.format_exc())
+            self.request_mapping.pop(request.request_id)
             return
 
         if request.ptype == PTYPE.ONEWAY:
+            self.request_mapping.pop(request.request_id)
             return
 
-        self.request_mapping[request.request_id] = asyncio.Event()
         return self.request_mapping[request.request_id]
 
     @asyncio.coroutine

@@ -20,6 +20,8 @@
    ------------------------------------------------------
    File Name : _wait
 """
+from .exceptions import SocketValueError
+
 try:
     from selectors import DefaultSelector, EVENT_READ, EVENT_WRITE
 except ImportError:
@@ -40,7 +42,10 @@ def _wait_for_io_events(socks, events, timeout):
             socks = list(socks)
     with DefaultSelector() as selector:
         for sock in socks:
-            selector.register(sock, events)
+            try:
+                selector.register(sock, events)
+            except Exception as e:
+                raise SocketValueError("SocketValueError", e)
         return [key[0].fileobj for key in
                 selector.select(timeout) if key[1] & events]
 

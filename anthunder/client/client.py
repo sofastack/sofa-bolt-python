@@ -30,6 +30,7 @@ except ImportError:
     from selectors34 import DefaultSelector, EVENT_READ
 
 from mysockpool import PoolManager
+from mysockpool.exceptions import SocketValueError
 
 from anthunder.exceptions import ServerError
 from anthunder.helpers.singleton import Singleton
@@ -68,8 +69,21 @@ class Client(_BaseClient):
         header = SofaHeader.build_header(spanctx, interface, method_name, target_app=target_app, uid=uid,
                                          **sofa_headers_extra)
         p = BoltRequest.new_request(header, content, timeout_ms=timeout_ms or -1, ptype=bolt_ptype)
-        conn = self._get_pool(interface).get_conn()
-        conn.send(p.to_stream())
+        for i in range(3):
+            # try three times, to avoid connection failure
+            try:
+                conn = self._get_pool(interface).get_conn()
+                conn.send(p.to_stream())
+            except SocketValueError as e:
+                logger.info("Call to interface {} failed, requiest_id: {}, "
+                            "retried: {}, reason: {}".format(interface, p.request_id, i, e))
+                continue
+            except Exception as e:
+                logger.error("Call to interface {} failed, requiest_id: {}, "
+                             "retried: {}, reason: {}".format(interface, p.request_id, i, e))
+                break
+            else:
+                break
         logger.debug("Called interface {}, request_id: {}".format(interface, p.request_id))
         return p.request_id, conn
 

@@ -47,3 +47,7 @@ class ClosedPoolError(MysockpoolError):
 class LocationValueError(ValueError, MysockpoolError):
     "Raised when there is something wrong with a given URL input."
     pass
+
+
+class SocketValueError(ValueError, MysockpoolError):
+    "Raised when socket is unable to register in selector."
