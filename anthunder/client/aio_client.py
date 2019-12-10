@@ -223,7 +223,12 @@ class AioClient(_BaseClient):
         while True:
             pkg = None
             try:
-                fixed_header_bs = await reader.readexactly(BoltResponse.bolt_header_size())
+                try:
+                    fixed_header_bs = await reader.readexactly(BoltResponse.bolt_header_size())
+                except EOFError:
+                    logger.info("Connection closed by remote host.")
+                    writer.close()
+                    break
                 header = BoltResponse.bolt_header_from_stream(fixed_header_bs)
                 bs = await reader.readexactly(header['class_len'] + header['header_len'] + header['content_len'])
                 pkg = BoltResponse.bolt_content_from_stream(bs, header)
