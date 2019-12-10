@@ -17,6 +17,9 @@
    File Name : performance
    Author : jiaqi.hjq
 """
+import os
+
+# os.environ["PYTHONASYNCIODEBUG"] = "1"
 import asyncio
 import logging
 import threading
@@ -121,6 +124,6 @@ def _acall(name):
 if __name__ == '__main__':
     _run_server()
     executor = ProcessPoolExecutor(max_workers=100)
-    result = executor.map(_call, range(100), timeout=15)
+    result = executor.map(_call, range(100), timeout=5)
 
     executor.shutdown(wait=False)

@@ -86,7 +86,8 @@ class AioClient(_BaseClient):
         try:
             ret = fut.result(timeout=timeout_ms / 1000)
         except (TimeoutError, CancelledError) as e:
-            logger.error("call to [{}:{}] timeout/cancelled. {}".format(interface, method, e))
+            logger.error("call to [{}:{}] timeout/cancelled. {}. {}".format(interface, method, e,
+                                                                            asyncio.Task(fut).print_stack()))
             raise
         return ret.content
 
@@ -126,6 +127,8 @@ class AioClient(_BaseClient):
             for addr in self.connection_mapping:
                 succ = await self.invoke_heartbeat(addr)
                 if not succ:
+                    import time
+                    logger.error("heartbeat failed {}, {}".format(addr, time.time()))
                     _, w = self.connection_mapping.pop(addr)
                     w.close()
 
@@ -180,28 +183,28 @@ class AioClient(_BaseClient):
         """
         assert isinstance(request, BoltRequest)
 
-        async def _send(retry=3):
-            if retry <= 0:
-                raise PyboltError("send request failed.")
-            readtask, writer = await self._get_connection(address)
-            try:
-                await writer.drain()  # avoid back pressure
-                writer.write(request.to_stream())
-                await writer.drain()
-            except Exception as e:
-                logger.error("Request sent to {} failed: {}, may try again.".format(address, e))
-                readtask.cancel()
-                self.connection_mapping.pop(address)
-                await _send(retry - 1)
-
         # generate event object first, ensure every successfully sent request has a event
         self.request_mapping[request.request_id] = asyncio.Event()
         try:
-            await _send()
-        except PyboltError:
-            logger.error("failed to send request {}".format(request.request_id))
-            self.request_mapping.pop(request.request_id)
-            return
+            _succ = False
+            for _ in range(3):
+                readtask, writer = await self._get_connection(address)
+                try:
+                    await writer.drain()  # avoid back pressure
+                    writer.write(request.to_stream())
+                    await writer.drain()
+                except Exception as e:
+                    logger.error("Request sent to {} failed: {}, may try again.".format(address, e))
+                    readtask.cancel()
+                    self.connection_mapping.pop(address)
+                else:
+                    # success
+                    _succ = True
+                    break
+            if not _succ:
+                logger.error("failed to send request {}".format(request.request_id))
+                self.request_mapping.pop(request.request_id)
+                return
         except Exception:
             logger.error(traceback.format_exc())
             self.request_mapping.pop(request.request_id)
