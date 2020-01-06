@@ -117,15 +117,13 @@ class AioClient(_BaseClient):
 
         return _inner
 
-    @asyncio.coroutine
-    def _heartbeat_timer(self, address, interval=30):
+    async def _heartbeat_timer(self, address, interval=30):
         """Invoke heartbeat periodly"""
         while True:
-            yield from asyncio.sleep(interval)
-            yield from self.invoke_heartbeat(address)
+            await asyncio.sleep(interval)
+            await self.invoke_heartbeat(address)
 
-    @asyncio.coroutine
-    def invoke_heartbeat(self, address):
+    async def invoke_heartbeat(self, address):
         """
         Send heartbeat to server
 
@@ -133,7 +131,7 @@ class AioClient(_BaseClient):
         TODO: to break the connection if server response wrongly
         """
         pkg = HeartbeatRequest.new_request()
-        resp = yield from self.invoke(pkg, address=address)
+        resp = await self.invoke(pkg, address=address)
         if resp.request_id != pkg.request_id:
             logger.error("heartbeat response request_id({}) mismatch with request({}).".format(resp.request_id,
                                                                                                pkg.request_id))
@@ -143,18 +141,16 @@ class AioClient(_BaseClient):
             return False
         return True
 
-    @asyncio.coroutine
-    def _get_connection(self, address):
+    async def _get_connection(self, address):
         try:
-            reader, writer = yield from asyncio.open_connection(*address)
+            reader, writer = await asyncio.open_connection(*address)
             task = asyncio.ensure_future(self._recv_response(reader, writer))
             return self.connection_mapping.setdefault(address, (task, writer))
         except Exception as e:
             logger.error("Get connection of {} failed: {}".format(address, e))
             raise
 
-    @asyncio.coroutine
-    def invoke(self, request: BoltRequest, *, address=None):
+    async def invoke(self, request: BoltRequest, *, address=None):
         """
         A request response wrapper
         :param address: a inet address, currently only for heartbeat request
@@ -162,15 +158,14 @@ class AioClient(_BaseClient):
         address = address or self._get_address(request.header['service'])
         logger.debug("invoke to address: {}".format(address))
 
-        event = yield from self._send_request(request, address=address)
+        event = await self._send_request(request, address=address)
         if event is None:
             logger.debug("no related event, should be a async/oneway call, return now")
             return
-        yield from event.wait()
+        await event.wait()
         return self.response_mapping.pop(request.request_id)
 
-    @asyncio.coroutine
-    def _send_request(self, request: BoltRequest, *, address):
+    async def _send_request(self, request: BoltRequest, *, address):
         """
         send request and put request_id in request_mapping for response match
         :param request:
@@ -179,25 +174,24 @@ class AioClient(_BaseClient):
         """
         assert isinstance(request, BoltRequest)
 
-        @asyncio.coroutine
-        def _send(retry=3):
+        async def _send(retry=3):
             if retry <= 0:
                 raise PyboltError("send request failed.")
-            readtask, writer = yield from self._get_connection(address)
+            readtask, writer = await self._get_connection(address)
             try:
-                yield from writer.drain()  # avoid back pressure
+                await writer.drain()  # avoid back pressure
                 writer.write(request.to_stream())
-                yield from writer.drain()
+                await writer.drain()
             except Exception as e:
                 logger.error("Request sent to {} failed: {}, may try again.".format(address, e))
                 readtask.cancel()
                 self.connection_mapping.pop(address)
-                yield from _send(retry - 1)
+                await _send(retry - 1)
 
         # generate event object first, ensure every successfully sent request has a event
         self.request_mapping[request.request_id] = asyncio.Event()
         try:
-            yield from _send()
+            await _send()
         except PyboltError:
             logger.error("failed to send request {}".format(request.request_id))
             self.request_mapping.pop(request.request_id)
@@ -213,8 +207,7 @@ class AioClient(_BaseClient):
 
         return self.request_mapping[request.request_id]
 
-    @asyncio.coroutine
-    def _recv_response(self, reader, writer):
+    async def _recv_response(self, reader, writer):
         """
         wait response and put it in response_mapping, than notify the invoke coro
         :param reader:
@@ -223,9 +216,9 @@ class AioClient(_BaseClient):
         while True:
             pkg = None
             try:
-                fixed_header_bs = yield from reader.readexactly(BoltResponse.bolt_header_size())
+                fixed_header_bs = await reader.readexactly(BoltResponse.bolt_header_size())
                 header = BoltResponse.bolt_header_from_stream(fixed_header_bs)
-                bs = yield from reader.readexactly(header['class_len'] + header['header_len'] + header['content_len'])
+                bs = await reader.readexactly(header['class_len'] + header['header_len'] + header['content_len'])
                 pkg = BoltResponse.bolt_content_from_stream(bs, header)
                 if pkg.class_name != BoltResponse.class_name:
                     raise ServerError("wrong class_name:[{}]".format(pkg.class_name))

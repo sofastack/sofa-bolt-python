@@ -45,12 +45,11 @@ class Counter(object):
     def inc(self):
         self.count += 1
 
-    @asyncio.coroutine
-    def print_count(self):
+    async def print_count(self):
         secs = 0
         last_count = 0
         while True:
-            yield from asyncio.sleep(1)
+            await asyncio.sleep(1)
             secs += 1
             curr_count = self.count
             print("{} secs: {} requests: {} r/s".format(secs, curr_count, (curr_count - last_count)))
@@ -67,8 +66,7 @@ class CoroExecutor(object):
     def submit(self, func, *args, **kwargs):
         return asyncio.ensure_future(self._coro_wrapper(func, *args, **kwargs))
 
-    @asyncio.coroutine
-    def _coro_wrapper(self, func, *args, **kwargs):
+    async def _coro_wrapper(self, func, *args, **kwargs):
         return func(*args, **kwargs)
 
 
