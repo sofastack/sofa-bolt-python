@@ -5,7 +5,7 @@ It supports RPC calling via 'sofa-bolt + protobuf' protocol.
 
 ## requirements
 
-- python3 >= 3.4 (aio classes needs asyncio support)
+- python3 >= 3.5 (aio classes needs asyncio support)
 - python2.7 (limited support, needs extra 3rd party libraries)
 - mosn >= 1.3 (to use with version >= 0.6)
 - mosn < 1.3 (to use with version < 0.6)
