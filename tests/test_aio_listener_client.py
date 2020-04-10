@@ -104,7 +104,7 @@ class TestListener(unittest.TestCase):
         for t in _ts:
             t.join()
 
-        for task in asyncio.all_tasks(client._loop):
+        for task in all_tasks(client._loop):
             print(task)
         # _recv_response * 1
         # _heartbeat_timer * 1
