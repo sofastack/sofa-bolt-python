@@ -24,7 +24,6 @@ import logging
 from anthunder.command.heartbeat import HeartbeatRequest, HeartbeatResponse
 from anthunder.protocol.constants import RESPSTATUS
 
-
 if six.PY34:
     import asyncio
     import concurrent.futures
@@ -99,6 +98,11 @@ class TestListener(unittest.TestCase):
         for t in _ts:
             t.join()
 
+        for task in asyncio.all_tasks(client._loop):
+            print(task)
+        # _recv_response * 1
+        # _heartbeat_timer * 1
+        self.assertLessEqual(len(asyncio.all_tasks(client._loop)), 2)
         self.assertEqual(len(_result), 10)
         self.assertTrue(all(_result))
 
