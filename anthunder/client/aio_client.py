@@ -145,18 +145,13 @@ class AioClient(_BaseClient):
     async def _get_connection(self, address):
         try:
             # fast path return existed connection
-            ret = self.connection_mapping.get(address)
-            if ret:
-                return ret
+            if address in self.connection_mapping:
+                return self.connection_mapping[address]
 
-            lock = self._pending_dial.get(address)
-            if not lock:
-                lock = asyncio.Lock()
-                self._pending_dial[address] = lock
-            async with lock:
-                ret = self.connection_mapping.get(address)
-                if ret:
-                    return ret
+            async with self._pending_dial.setdefault(address, asyncio.Lock()):
+                if address in self.connection_mapping:
+                    return self.connection_mapping[address]
+
                 reader, writer = await asyncio.open_connection(*address)
                 task = asyncio.ensure_future(self._recv_response(reader, writer))
                 return self.connection_mapping.setdefault(address, (task, writer))
