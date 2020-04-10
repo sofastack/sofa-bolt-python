@@ -180,7 +180,7 @@ class AioListener(BaseListener):
             try:
                 try:
                     fixed_header_bs = await reader.readexactly(BoltRequest.bolt_header_size())
-                except asyncio.streams.IncompleteReadError:
+                except asyncio.IncompleteReadError:
                     if first_req:
                         # just connected, log an error
                         logging.error("Connection lost on first request")

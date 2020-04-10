@@ -55,6 +55,7 @@ class AioClient(_BaseClient):
         self.response_mapping = dict()  # request_id: response_pkg
         self.connection_mapping = dict()  # address: (reader_coro, writer)
         self.loop_thread = self._init()
+        self._pending_dial = dict()  # address: (asyncio.Lock)
 
     def _init(self):
         def _t():
@@ -143,9 +144,17 @@ class AioClient(_BaseClient):
 
     async def _get_connection(self, address):
         try:
-            reader, writer = await asyncio.open_connection(*address)
-            task = asyncio.ensure_future(self._recv_response(reader, writer))
-            return self.connection_mapping.setdefault(address, (task, writer))
+            # fast path return existed connection
+            if address in self.connection_mapping:
+                return self.connection_mapping[address]
+
+            async with self._pending_dial.setdefault(address, asyncio.Lock()):
+                if address in self.connection_mapping:
+                    return self.connection_mapping[address]
+
+                reader, writer = await asyncio.open_connection(*address)
+                task = asyncio.ensure_future(self._recv_response(reader, writer))
+                return self.connection_mapping.setdefault(address, (task, writer))
         except Exception as e:
             logger.error("Get connection of {} failed: {}".format(address, e))
             raise
@@ -186,6 +195,7 @@ class AioClient(_BaseClient):
                 logger.error("Request sent to {} failed: {}, may try again.".format(address, e))
                 readtask.cancel()
                 self.connection_mapping.pop(address)
+                self._pending_dial.pop(address)
                 await _send(retry - 1)
 
         # generate event object first, ensure every successfully sent request has a event
