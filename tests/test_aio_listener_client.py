@@ -41,6 +41,12 @@ if six.PY34:
     from tests.proto.python import SampleService
     from tests.proto.python.SampleServicePbRequest_pb2 import SampleServicePbRequest
     from tests.proto.python.SampleServicePbResult_pb2 import SampleServicePbResult
+    try:
+        from asyncio import all_tasks
+    except ImportError:
+        from asyncio import Task
+        all_tasks = Task.all_tasks
+
 
 
 @unittest.skipUnless(six.PY34, "Aio-classes only support python>3.4")
@@ -102,7 +108,7 @@ class TestListener(unittest.TestCase):
             print(task)
         # _recv_response * 1
         # _heartbeat_timer * 1
-        self.assertLessEqual(len(asyncio.all_tasks(client._loop)), 2)
+        self.assertLessEqual(len(all_tasks(client._loop)), 2)
         self.assertEqual(len(_result), 10)
         self.assertTrue(all(_result))
 
