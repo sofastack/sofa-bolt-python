@@ -20,7 +20,8 @@
    ------------------------------------------------------
    File Name : recently_used_container
 """
-from collections import MutableMapping, OrderedDict
+from collections.abc import MutableMapping
+from collections import OrderedDict
 from threading import RLock
 
 
