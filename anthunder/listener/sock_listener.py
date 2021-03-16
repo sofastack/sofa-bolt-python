@@ -69,8 +69,11 @@ class SockServiceHandler(BaseHandler):
         :param service_cls_kwargs: extra keyword arguments for service_cls
         :return: None
         """
-        def service_cls_wrapper(spanctx):
-            return service_cls(spanctx, *service_cls_args, **service_cls_kwargs)
+        if service_cls_args or service_cls_kwargs:
+            def service_cls_wrapper(spanctx):
+                return service_cls(spanctx, *service_cls_args, **service_cls_kwargs)
+        else:
+            service_cls_wrapper = service_cls
         self.interface_mapping[interface] = service_cls_wrapper
 
 
