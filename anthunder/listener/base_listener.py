@@ -37,7 +37,7 @@ class BaseHandler(object):
     #   "interface": (function, protobuf_cls)
     interface_mapping = dict()
 
-    def register_interface(self, interface, service_cls):
+    def register_interface(self, interface, service_cls, *service_cls_args, **service_cls_kwargs):
         raise NotImplementedError()
 
     def handle_request(self, ctx, service, method, body):

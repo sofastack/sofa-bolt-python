@@ -23,7 +23,7 @@ from mytracer import SpanContext
 
 logging.basicConfig()
 
-from multiprocessing import Process
+from multiprocessing import Process, freeze_support
 import time
 from random import randint
 
@@ -41,21 +41,31 @@ interface = "com.alipay.rpc.common.service.facade.pb.SampleServicePb:1.0"
 SERVICE_MAP[interface] = localaddress
 
 
+class TestSampleServicePb(BaseService):
+    def __init__(self, ctx, *, server_name):
+        super().__init__(ctx)
+        self._name=server_name
+
+    def hello(self, bs):
+        # add a delay
+        time.sleep(randint(50, 300) / 100)
+
+        obj = SampleServicePbRequest()
+        obj.ParseFromString(bs)
+        print("server: Processing request", obj)
+        # reference a pre init member
+        ret = obj.name + self._name
+        return SampleServicePbResult(result=ret).SerializeToString()
+
+
 def run_server():
     listener = Listener(localaddress, "test_app")
     time.sleep(0.1)
 
-    class TestSampleServicePb(BaseService):
-        def hello(self, bs):
-            # add a delay
-            time.sleep(randint(50, 300) / 100)
+    # some initialize work
+    server_name = "A_DYNAMIC_NAME"
 
-            obj = SampleServicePbRequest()
-            obj.ParseFromString(bs)
-            print("server: Processing request", obj)
-            return SampleServicePbResult(result=obj.name).SerializeToString()
-
-    listener.handler.register_interface(interface, TestSampleServicePb)
+    listener.handler.register_interface(interface, TestSampleServicePb, server_name=server_name)
 
     listener.run_forever()
 
@@ -76,15 +86,17 @@ def run_client(text):
 
     print("client", result)
 
+if __name__ == "__main__":
+    freeze_support()
 
-print("starting server")
-server_proc = Process(target=run_server)
-server_proc.start()
-time.sleep(1)
+    print("starting server")
+    server_proc = Process(target=run_server)
+    server_proc.start()
+    time.sleep(1)
 
-print("starting client")
-run_client("client1")
-run_client("client2")
-run_client("client3")
+    print("starting client")
+    run_client("client1")
+    run_client("client2")
+    run_client("client3")
 
-server_proc.terminate()
+    server_proc.terminate()

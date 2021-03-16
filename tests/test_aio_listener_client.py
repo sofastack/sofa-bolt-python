@@ -60,16 +60,20 @@ class TestListener(unittest.TestCase):
         time.sleep(0.1)
 
         class TestSampleServicePb(BaseService):
+            def __init__(self, ctx, *, seed=None):
+                self._seed = seed
+                super().__init__(ctx)
+
             def hello(self, bs):
                 # add a delay
-                time.sleep(randint(50, 300) / 1000)
+                time.sleep(self._seed)
 
                 obj = SampleServicePbRequest()
                 obj.ParseFromString(bs)
                 print("Processing Request", obj)
                 return SampleServicePbResult(result=obj.name).SerializeToString()
 
-        cls.listener.handler.register_interface(cls.interface, TestSampleServicePb)
+        cls.listener.handler.register_interface(cls.interface, TestSampleServicePb, seed=randint(50, 300) / 1000)
 
     def test_server(self):
         # mocked, will call to localhost

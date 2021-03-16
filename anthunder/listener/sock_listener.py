@@ -59,8 +59,22 @@ class SockServiceHandler(BaseHandler):
 
         return func(body)
 
-    def register_interface(self, interface, service_cls):
-        self.interface_mapping[interface] = service_cls
+    def register_interface(self, interface, service_cls, *service_cls_args, **service_cls_kwargs):
+        """
+        register interface: service_cls relationship
+        :param interface: the interface name bind to the service
+        :param service_cls: the service class factory. 
+                            Will be called will a spanctx of each request and returns a Service Object.
+        :param service_cls_args: extra positional arguments for service_cls
+        :param service_cls_kwargs: extra keyword arguments for service_cls
+        :return: None
+        """
+        if service_cls_args or service_cls_kwargs:
+            def service_cls_wrapper(spanctx):
+                return service_cls(spanctx, *service_cls_args, **service_cls_kwargs)
+        else:
+            service_cls_wrapper = service_cls
+        self.interface_mapping[interface] = service_cls_wrapper
 
 
 class SockBoltHandler(StreamRequestHandler):
