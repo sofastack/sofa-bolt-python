@@ -18,38 +18,32 @@
    Author : jiaqi.hjq
 """
 import unittest
-import six
-import logging
 
 from anthunder.command.heartbeat import HeartbeatRequest, HeartbeatResponse
 from anthunder.protocol.constants import RESPSTATUS
 
-if six.PY34:
-    import asyncio
-    import concurrent.futures
-    import functools
-    import threading
-    import time
-    from unittest import mock
-    from random import randint
+import concurrent.futures
+import functools
+import threading
+import time
+from unittest import mock
+from random import randint
 
-    from mytracer import SpanContext
+from mytracer import SpanContext
 
-    from anthunder import AioClient
-    from anthunder.listener.aio_listener import AioListener
-    from anthunder.listener.base_listener import BaseService
-    from tests.proto.python import SampleService
-    from tests.proto.python.SampleServicePbRequest_pb2 import SampleServicePbRequest
-    from tests.proto.python.SampleServicePbResult_pb2 import SampleServicePbResult
-    try:
-        from asyncio import all_tasks
-    except ImportError:
-        from asyncio import Task
-        all_tasks = Task.all_tasks
+from anthunder import AioClient
+from anthunder.listener.aio_listener import AioListener
+from anthunder.listener.base_listener import BaseService
+from tests.proto.python import SampleService
+from tests.proto.python.SampleServicePbRequest_pb2 import SampleServicePbRequest
+from tests.proto.python.SampleServicePbResult_pb2 import SampleServicePbResult
+try:
+    from asyncio import all_tasks
+except ImportError:
+    from asyncio import Task
+    all_tasks = Task.all_tasks
 
 
-
-@unittest.skipUnless(six.PY34, "Aio-classes only support python>3.4")
 class TestListener(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

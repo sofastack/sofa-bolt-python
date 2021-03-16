@@ -19,14 +19,8 @@
 
 """
 
-__all__ = ['BaseService', 'SockListener']
+__all__ = ['BaseService', 'SockListener', 'AioListener']
 
 from .base_listener import BaseService
 from .sock_listener import SockListener
-
-import six
-
-if six.PY34:
-    from .aio_listener import AioListener
-
-    __all__.append('AioListener')
+from .aio_listener import AioListener

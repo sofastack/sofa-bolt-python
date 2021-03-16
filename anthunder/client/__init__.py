@@ -17,13 +17,7 @@
    File Name : __init__.py
    Author : jiaqi.hjq
 """
-__all__ = ["Client"]
+__all__ = ["Client", "AioClient",]
 
 from .client import Client
-
-import six
-
-if six.PY34:
-    from .aio_client import AioClient
-
-    __all__.append("AioClient")
+from .aio_client import AioClient
