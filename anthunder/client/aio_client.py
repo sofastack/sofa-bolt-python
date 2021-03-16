@@ -24,6 +24,7 @@ import logging
 import threading
 import traceback
 from contextlib import suppress
+from typing import Union
 
 try:
     import uvloop
@@ -36,6 +37,7 @@ from concurrent.futures import TimeoutError, CancelledError
 from anthunder.command.heartbeat import HeartbeatRequest
 from anthunder.exceptions import PyboltError, ServerError
 from anthunder.helpers.singleton import Singleton
+from anthunder.helpers.payload import Payload
 from anthunder.protocol import SofaHeader, BoltRequest, BoltResponse
 from anthunder.protocol.constants import PTYPE, CMDCODE, RESPSTATUS
 
@@ -71,12 +73,12 @@ class AioClient(_BaseClient):
         logger.debug("client coro thread started")
         return t
 
-    def invoke_oneway(self, interface, method, content, *, spanctx, **headers):
+    def invoke_oneway(self, interface, method, content:Union[bytes, Payload], *, spanctx, **headers):
         header = SofaHeader.build_header(spanctx, interface, method, **headers)
         pkg = BoltRequest.new_request(header, content, timeout_ms=-1)
         asyncio.run_coroutine_threadsafe(self.invoke(pkg), loop=self._loop)
 
-    def invoke_sync(self, interface, method, content, *, spanctx, timeout_ms, **headers):
+    def invoke_sync(self, interface, method, content:Union[bytes, Payload], *, spanctx, timeout_ms, **headers):
         """blocking call to interface, returns responsepkg.content(as bytes)"""
         assert isinstance(timeout_ms, (int, float))
         header = SofaHeader.build_header(spanctx, interface, method, **headers)
@@ -89,7 +91,7 @@ class AioClient(_BaseClient):
             raise
         return ret.content
 
-    def invoke_async(self, interface, method, content, *, spanctx, callback=None, timeout_ms=None, **headers):
+    def invoke_async(self, interface, method, content:Union[bytes, Payload], *, spanctx, callback=None, timeout_ms=None, **headers):
         """
         call callback if callback is a callable,
         otherwise return a future

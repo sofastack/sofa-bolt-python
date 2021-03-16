@@ -22,8 +22,10 @@
         version0 : 2018/4/28 11:39 by jiaqi.hjq  init
 """
 import struct
+from typing import Union
 from anthunder.helpers.request_id import RequestId
-from .constants import PTYPE, CMDCODE
+from anthunder.helpers.payload import Payload
+from .constants import PTYPE, CMDCODE, CODEC
 from .exceptions import EncodeError
 from ._package_base import BoltPackage
 
@@ -46,6 +48,13 @@ class BoltRequest(BoltPackage):
             raise EncodeError(e)
 
     @classmethod
-    def new_request(cls, header, content, ptype=PTYPE.REQUEST, timeout_ms=None):
-        return cls(header, content, ptype=ptype, cmdcode=CMDCODE.REQUEST,
+    def new_request(cls, header, content: Union[bytes, Payload], ptype=PTYPE.REQUEST, timeout_ms=None):
+        if isinstance(content, Payload):
+            cont = content.serialize()
+            codec = content.codec
+        else:
+            cont = content
+            codec = CODEC.PROTOBUF
+
+        return cls(header, cont, ptype=ptype, cmdcode=CMDCODE.REQUEST, codec=codec,
                    request_id=next(RequestId), timeout=timeout_ms or -1)

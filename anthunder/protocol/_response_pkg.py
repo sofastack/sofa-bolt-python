@@ -23,8 +23,9 @@
 """
 import struct
 
+from anthunder.helpers.payload import Payload
 from ._sofa_header import empty_header
-from .constants import PTYPE, CMDCODE
+from .constants import PTYPE, CMDCODE, CODEC
 from .exceptions import EncodeError
 from ._package_base import BoltPackage
 
@@ -48,4 +49,12 @@ class BoltResponse(BoltPackage):
 
     @classmethod
     def response_to(cls, content, request_id):  # pragma: no cover
-        return cls(empty_header, content, request_id=request_id, ptype=PTYPE.RESPONSE, cmdcode=CMDCODE.RESPONSE)
+        if isinstance(content, Payload):
+            cont = content.serialize()
+            codec = content.codec
+        else:
+            cont = content
+            codec = CODEC.PROTOBUF
+
+        return cls(empty_header, cont, request_id=request_id, ptype=PTYPE.RESPONSE, 
+                   cmdcode=CMDCODE.RESPONSE, codec=codec)
