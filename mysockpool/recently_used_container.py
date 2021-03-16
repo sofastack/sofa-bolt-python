@@ -20,7 +20,11 @@
    ------------------------------------------------------
    File Name : recently_used_container
 """
-from collections.abc import MutableMapping
+import six
+if six.PY2:
+    from collections import MutableMapping
+else:
+    from collections.abc import MutableMapping
 from collections import OrderedDict
 from threading import RLock
 
