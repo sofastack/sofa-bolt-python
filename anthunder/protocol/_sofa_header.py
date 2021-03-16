@@ -22,7 +22,6 @@
         version0 : 2018/5/17 14:04 by jiaqi.hjq  init
 """
 import struct
-import six
 from mytracer import SpanContext
 
 from ._rpc_trace_context import RpcTraceContext
@@ -48,7 +47,7 @@ def _str_to_bytes_with_len(s, coding='utf-8'):
     :param coding:
     :return: bytes object
     """
-    assert isinstance(s, six.string_types)
+    assert isinstance(s, str)
     b = s.encode(coding)
     return _int2bytes_be(len(b)) + b
 
@@ -106,7 +105,7 @@ class SofaHeader(dict):
 
     def to_bytes(self):
         try:
-            return b''.join(_str_to_bytes_with_len(k) + _str_to_bytes_with_len(v) for k, v in six.iteritems(self))
+            return b''.join(_str_to_bytes_with_len(k) + _str_to_bytes_with_len(v) for k, v in self.items())
         except AttributeError as e:  # pragma: no cover
             raise EncodeError(e)
 
