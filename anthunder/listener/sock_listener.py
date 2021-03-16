@@ -21,7 +21,7 @@ import logging
 import traceback
 from errno import ECONNRESET
 
-from six.moves.socketserver import StreamRequestHandler, ThreadingTCPServer
+from socketserver import StreamRequestHandler, ThreadingTCPServer
 
 import opentracing
 from mytracer import tracer

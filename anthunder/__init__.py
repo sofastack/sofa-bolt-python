@@ -22,7 +22,7 @@
         version0 : 2018/4/28 11:36 by jiaqi.hjq  init
 """
 
-__all__ = ['Client', 'SockListener', 'BaseService', 'Request', 'SERVICE_MAP']
+__all__ = ['Client', 'SockListener', 'BaseService', 'Request', 'SERVICE_MAP', 'AioListener', 'AioClient']
 
 from anthunder.helpers.immutable_dict import ImmutableValueDict
 
@@ -32,10 +32,5 @@ from anthunder.client.client import Client
 from anthunder.listener.sock_listener import SockListener
 from anthunder.listener.base_listener import BaseService
 from anthunder.request import Request
-import six
-
-if six.PY34:
-    __all__.extend(['AioListener', 'AioClient'])
-
-    from anthunder.listener.aio_listener import AioListener
-    from anthunder.client.aio_client import AioClient
+from anthunder.listener.aio_listener import AioListener
+from anthunder.client.aio_client import AioClient
