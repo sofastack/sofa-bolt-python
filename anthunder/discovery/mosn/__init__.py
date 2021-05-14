@@ -24,6 +24,7 @@ import requests
 from requests import ConnectionError
 
 from anthunder.helpers.singleton import Singleton
+from anthunder.model.service import Service
 
 
 @attr.s
@@ -71,7 +72,7 @@ class MosnClient(object):
     __metaclass__ = Singleton
 
     def __init__(self,
-                 appinfo,
+                 appinfo: ApplicationInfo,
                  *,
                  keep_alive=True,
                  service_api="http://127.0.0.1:13330/",
@@ -96,26 +97,26 @@ class MosnClient(object):
                 self._started = True
             return self._started
 
-    def subscribe(self, service_str):
-        return self._post("services/subscribe", dict(serviceName=service_str))
+    def subscribe(self, service):
+        return self._post("services/subscribe", dict(serviceName=service.name))
 
-    def unsubscribe(self, service_str):
+    def unsubscribe(self, service):
         return self._post("services/unsubscribe",
-                          dict(serviceName=service_str))
+                          dict(serviceName=service.name))
 
-    def publish(self, publish_service_request):
+    def publish(self, address, service: Service):
         """
         :param publish_service_request:
         :type publish_service_request: PublishServiceRequest
         :return:
         """
-        return self._post("services/publish",
-                          attr.asdict(publish_service_request))
+        req = PublishServiceRequest(port=str(address[1]), serviceName=service.name, providerMetaInfo=service.provider_metadata))
+        return self._post("services/publish", attr.asdict(req))
 
-    def unpublish(self, service_str):
-        return self._post("services/unpublish", dict(serviceName=service_str))
+    def unpublish(self, service):
+        return self._post("services/unpublish", dict(serviceName=service.name))
 
-    def get_address(self, service_str):
+    def get_address(self, service):
         return self.rpc_address
 
     def _post(self, endpoint, json):

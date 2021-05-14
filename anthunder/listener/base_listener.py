@@ -21,7 +21,6 @@ import logging
 import threading
 
 from anthunder.exceptions import ServerError
-from anthunder.discovery.mosn import MosnClient, PublishServiceRequest, ProviderMetaInfo, ApplicationInfo
 
 logger = logging.getLogger(__name__)
 
@@ -84,14 +83,7 @@ class BaseListener(object):
         """
         if self.service_register:
             for service_name in self.handler.interface_mapping:
-                self.service_register.publish(
-                    PublishServiceRequest(port=str(self.address[1]),
-                                          serviceName=service_name,
-                                          providerMetaInfo=ProviderMetaInfo(
-                                              protocol="1",
-                                              version="4.0",
-                                              serializeType="protobuf",
-                                              appName=self.app_name)))
+                self.service_register.publish(self.address, service_name)
 
     def unpublish(self):
         """
