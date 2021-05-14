@@ -20,7 +20,7 @@
 import logging
 
 from anthunder import SERVICE_MAP
-from anthunder.mesh.mesh_client import MeshClient, ApplicationInfo
+from anthunder.discovery.mesh_client import MeshClient, ApplicationInfo
 
 logger = logging.getLogger(__name__)
 
