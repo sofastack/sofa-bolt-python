@@ -64,17 +64,11 @@ class ApplicationInfo(object):
 class MosnClient(object):
     __metaclass__ = Singleton
 
-    def __init__(self,
-                 appinfo: ApplicationInfo,
-                 *,
-                 keep_alive=True,
-                 service_api="http://127.0.0.1:13330/",
-                 rpc_address=("127.0.0.1", 12200)):
+    def __init__(self, *, keep_alive=True, service_api="http://127.0.0.1:13330/", rpc_address=("127.0.0.1", 12200)):
         """
         :param appinfo: application infomation data, see ApplicationInfo's comments.
         :type appinfo: ApplicationInfo, see ApplicationInfo's comments.
         """
-        self.appinfo = appinfo
         self._sess = requests.session()
         self._rlock = RLock()
         self._started = False
@@ -82,11 +76,10 @@ class MosnClient(object):
         self.service_api = service_api
         self.rpc_address = rpc_address
 
-    def startup(self):
+    def startup(self, appinfo: ApplicationInfo):
         with self._rlock:
             if not self._started:
-                self._post("configs/application",
-                           attr.asdict(self.appinfo, filter=lambda a, v: v))
+                self._post("configs/application", attr.asdict(appinfo, filter=lambda a, v: v))
                 self._started = True
             return self._started
 
