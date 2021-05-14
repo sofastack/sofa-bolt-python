@@ -36,13 +36,6 @@ class PublishServiceRequest(object):
     onlyPublishInCloud = attr.ib(default=False)
 
 
-@attr.s
-class ProviderMetaInfo(object):
-    protocol = attr.ib()
-    version = attr.ib()
-    serializeType = attr.ib()
-    appName = attr.ib()
-
 
 @attr.s
 class ApplicationInfo(object):
