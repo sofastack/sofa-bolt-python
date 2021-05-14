@@ -29,7 +29,7 @@ __all__ = [
 
 from anthunder.client.client import Client
 from anthunder.listener.sock_listener import SockListener
-from anthunder.listener.base_listener import BaseService
+from anthunder.model.service import BaseService
 from anthunder.request import Request
 from anthunder.listener.aio_listener import AioListener
 from anthunder.client.aio_client import AioClient

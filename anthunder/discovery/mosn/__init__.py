@@ -24,7 +24,7 @@ import requests
 from requests import ConnectionError
 
 from anthunder.helpers.singleton import Singleton
-from anthunder.model.service import Service
+from anthunder.model.service import ServiceMeta
 
 
 @attr.s
@@ -90,7 +90,7 @@ class MosnClient(object):
         return self._post("services/unsubscribe",
                           dict(serviceName=service.name))
 
-    def publish(self, address, service: Service):
+    def publish(self, address, service: ServiceMeta):
         """
         :param publish_service_request:
         :type publish_service_request: PublishServiceRequest
