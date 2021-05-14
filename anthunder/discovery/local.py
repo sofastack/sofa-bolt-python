@@ -26,7 +26,10 @@ from anthunder.helpers.immutable_dict import ImmutableValueDict
 
 class LocalRegistry(object):
     """
-    A simple service registry with all addresses predefined
+    A simple service registry with all addresses hardcode in object of this class.
+    For test purpose only.
+    Any service running in production should be in service mesh or use a service discovery
+    services to obtain remote addresses.
     """
     __metaclass__ = Singleton
 
