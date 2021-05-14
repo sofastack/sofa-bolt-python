@@ -32,9 +32,8 @@ class LocalRegistry(object):
 
     keep_alive = False  # only for mesh heartbeat
 
-    def __init__(self, appinfo, servicemap, **kwargs):
-        self.appinfo = appinfo
-        self._serviceMap = ImmutableValueDict(servicemap, **kwargs)
+    def __init__(self, servicemap):
+        self._serviceMap = ImmutableValueDict(servicemap)
 
     def subscribe(self, service):
         logger.warning("local registry does not support this method")
