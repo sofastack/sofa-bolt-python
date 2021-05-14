@@ -22,11 +22,10 @@
         version0 : 2018/4/28 11:36 by jiaqi.hjq  init
 """
 
-__all__ = ['Client', 'SockListener', 'BaseService', 'Request', 'SERVICE_MAP', 'AioListener', 'AioClient']
-
-from anthunder.helpers.immutable_dict import ImmutableValueDict
-
-SERVICE_MAP = ImmutableValueDict()
+__all__ = [
+    'Client', 'SockListener', 'BaseService', 'Request', 'AioListener',
+    'AioClient'
+]
 
 from anthunder.client.client import Client
 from anthunder.listener.sock_listener import SockListener

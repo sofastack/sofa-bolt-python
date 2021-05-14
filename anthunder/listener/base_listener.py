@@ -21,7 +21,7 @@ import logging
 import threading
 
 from anthunder.exceptions import ServerError
-from anthunder.discovery.mesh_client import MeshClient, PublishServiceRequest, ProviderMetaInfo, ApplicationInfo
+from anthunder.discovery.mosn import MosnClient, PublishServiceRequest, ProviderMetaInfo, ApplicationInfo
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,8 @@ class BaseHandler(object):
     #   "interface": (function, protobuf_cls)
     interface_mapping = dict()
 
-    def register_interface(self, interface, service_cls, *service_cls_args, **service_cls_kwargs):
+    def register_interface(self, interface, service_cls, *service_cls_args,
+                           **service_cls_kwargs):
         raise NotImplementedError()
 
     def handle_request(self, ctx, service, method, body):
@@ -57,8 +58,11 @@ class BaseListener(object):
     """
     handlerCls = BaseHandler
 
-    def __init__(self, address, app_name, data_center="", zone="", registry_end_point=None,
-                 is_antsharecloud=False, access_key=None, secret_key=None,
+    def __init__(self,
+                 address,
+                 app_name,
+                 *,
+                 service_register=None,
                  **server_kwargs):
         """
         :param address: the socket address will be listened on.
@@ -69,13 +73,7 @@ class BaseListener(object):
         self.app_name = app_name
         self.server_kwargs = server_kwargs
         self.handler = self.handlerCls()
-        try:
-            self._mesh_client = MeshClient(ApplicationInfo(app_name, data_center, zone, registry_end_point,
-                                                           access_key, secret_key, is_antsharecloud))
-            self._mesh_client.startup()
-        except:
-            logger.error("Fail to startup mesh client")
-            self._mesh_client = None
+        self.service_register = service_register
 
     def initialize(self):
         raise NotImplementedError()
@@ -84,23 +82,24 @@ class BaseListener(object):
         """
         Publish all the interfaces in handler.interface_mapping to mosnd
         """
-        if self._mesh_client:
+        if self.service_register:
             for service_name in self.handler.interface_mapping:
-                self._mesh_client.publish(PublishServiceRequest(
-                    port=str(self.address[1]),
-                    serviceName=service_name,
-                    providerMetaInfo=ProviderMetaInfo(protocol="1",
-                                                      version="4.0",
-                                                      serializeType="protobuf",
-                                                      appName=self.app_name)))
+                self.service_register.publish(
+                    PublishServiceRequest(port=str(self.address[1]),
+                                          serviceName=service_name,
+                                          providerMetaInfo=ProviderMetaInfo(
+                                              protocol="1",
+                                              version="4.0",
+                                              serializeType="protobuf",
+                                              appName=self.app_name)))
 
     def unpublish(self):
         """
         Revoke all the interfaces in handler.interface_mapping from mosnd.
         """
-        if self._mesh_client:
+        if self.service_register:
             for service_name in self.handler.interface_mapping:
-                self._mesh_client.unpublish(service_name)
+                self.service_register.unpublish(service_name)
 
     def run_forever(self):
         raise NotImplementedError()

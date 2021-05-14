@@ -67,11 +67,15 @@ class ApplicationInfo(object):
     antShareCloud = attr.ib(default=False)
 
 
-class MeshClient(object):
+class MosnClient(object):
     __metaclass__ = Singleton
-    _server = "http://127.0.0.1:13330/{}".format
 
-    def __init__(self, appinfo):
+    def __init__(self,
+                 appinfo,
+                 *,
+                 keep_alive=True,
+                 service_api="http://127.0.0.1:13330/",
+                 rpc_address=("127.0.0.1", 12200)):
         """
         :param appinfo: application infomation data, see ApplicationInfo's comments.
         :type appinfo: ApplicationInfo, see ApplicationInfo's comments.
@@ -80,11 +84,15 @@ class MeshClient(object):
         self._sess = requests.session()
         self._rlock = RLock()
         self._started = False
+        self.keep_alive = keep_alive
+        self.service_api = service_api
+        self.rpc_address = rpc_address
 
     def startup(self):
         with self._rlock:
             if not self._started:
-                self._post("configs/application", attr.asdict(self.appinfo, filter=lambda a, v: v))
+                self._post("configs/application",
+                           attr.asdict(self.appinfo, filter=lambda a, v: v))
                 self._started = True
             return self._started
 
@@ -92,7 +100,8 @@ class MeshClient(object):
         return self._post("services/subscribe", dict(serviceName=service_str))
 
     def unsubscribe(self, service_str):
-        return self._post("services/unsubscribe", dict(serviceName=service_str))
+        return self._post("services/unsubscribe",
+                          dict(serviceName=service_str))
 
     def publish(self, publish_service_request):
         """
@@ -100,18 +109,23 @@ class MeshClient(object):
         :type publish_service_request: PublishServiceRequest
         :return:
         """
-        return self._post("services/publish", attr.asdict(publish_service_request))
+        return self._post("services/publish",
+                          attr.asdict(publish_service_request))
 
     def unpublish(self, service_str):
         return self._post("services/unpublish", dict(serviceName=service_str))
 
+    def get_address(self, service_str):
+        return self.rpc_address
+
     def _post(self, endpoint, json):
-        addr = self._server(endpoint)
+        addr = self.service_api + endpoint
         r = self._sess.post(addr, json=json)
         if r.status_code != 200:
-            raise ConnectionError("Connect to service mesh failed: {}".format(r.status_code))
+            raise ConnectionError("Connect to service mesh failed: {}".format(
+                r.status_code))
         result = r.json()
         if result.get('success') is not True:
-            raise ConnectionError("Connect to service mesh failed: {}".format(result.get('errorMessage',
-                                                                                         "MISSING ERROR MESSAGE")))
+            raise ConnectionError("Connect to service mesh failed: {}".format(
+                result.get('errorMessage', "MISSING ERROR MESSAGE")))
         return result

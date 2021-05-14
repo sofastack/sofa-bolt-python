@@ -19,9 +19,6 @@
 """
 import logging
 
-from anthunder import SERVICE_MAP
-from anthunder.discovery.mesh_client import MeshClient, ApplicationInfo
-
 logger = logging.getLogger(__name__)
 
 
@@ -32,59 +29,14 @@ class _BaseClient(object):
     mesh_service_address = ("127.0.0.1", 12220)
     sofa_default_port = 12200
 
-    def __init__(self, app_name, data_center=None, zone=None, registry_end_point=None,
-                 is_antsharecloud=False, access_key=None, secret_key=None):
+    def __init__(self, app_name, *, service_register=None):
         """
         Check ApplicationInfo's comment for params' explanations.
         """
-        try:
-            self._mesh_client = MeshClient(ApplicationInfo(app_name, data_center, zone, registry_end_point,
-                                                           access_key, secret_key, is_antsharecloud))
-            self._mesh_client.startup()
-            logger.info("Mesh client started!")
-        except:
-            logger.error("Fail to startup mesh client")
-            self._mesh_client = None
+        self._service_register = service_register
 
     def _get_address(self, interface):
-        addr = SERVICE_MAP.get(interface, self.mesh_service_address)
-        if isinstance(addr, str):
-            logger.debug("address is str({}), using default port({})".format(addr, self.sofa_default_port))
-            addr = (addr, self.sofa_default_port)
-        return addr
-
-    def subscribe(self, *interface):
-        """
-        Subscribe interfaces from mosnd, must called one before call to relevant interface.
-        :param interface: the interface name.
-        :type interface: str
-        """
-        if not self._mesh_client:
-            return
-        for inf in interface:
-            logger.info("Subscribe interface ({}) through mesh".format(inf))
-            try:
-                self._mesh_client.subscribe(inf)
-                SERVICE_MAP[inf] = self.mesh_service_address
-            except Exception as e:
-                logger.error(e)
-
-    def unsubscribe(self, *interface):
-        """
-        Unsubscribe interfaces from mosnd.
-
-        :param interface: the interface name
-        :type interface: str
-        """
-        if not self._mesh_client:
-            return
-        for inf in interface:
-            logger.info("Unsubscribe interface ({}) through mesh".format(inf))
-            try:
-                self._mesh_client.unsubscribe(inf)
-                SERVICE_MAP.pop(inf)
-            except Exception as e:
-                logger.error(e)
+        return self._service_register.get_address(interface)
 
     def invoke_sync(self, interface, method, content, **kwargs):
         raise NotImplementedError()
