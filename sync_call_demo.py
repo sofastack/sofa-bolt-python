@@ -31,20 +31,21 @@ try:
     from anthunder import AioListener as Listener, AioClient as Client
 except ImportError:
     from anthunder import SockListener as Listener, Client
-from anthunder import BaseService, SERVICE_MAP
+from anthunder import BaseService
+from anthunder.discovery import LocalRegistry
 
 from tests.proto.python.SampleServicePbRequest_pb2 import SampleServicePbRequest
 from tests.proto.python.SampleServicePbResult_pb2 import SampleServicePbResult
 
 localaddress = ('127.0.0.1', 12200)
 interface = "com.alipay.rpc.common.service.facade.pb.SampleServicePb:1.0"
-SERVICE_MAP[interface] = localaddress
+registry = LocalRegistry("test_app", {interface: localaddress})
 
 
 class TestSampleServicePb(BaseService):
     def __init__(self, ctx, *, server_name):
         super().__init__(ctx)
-        self._name=server_name
+        self._name = server_name
 
     def hello(self, bs):
         # add a delay
@@ -59,13 +60,16 @@ class TestSampleServicePb(BaseService):
 
 
 def run_server():
+
     listener = Listener(localaddress, "test_app")
     time.sleep(0.1)
 
     # some initialize work
     server_name = "A_DYNAMIC_NAME"
 
-    listener.handler.register_interface(interface, TestSampleServicePb, server_name=server_name)
+    listener.handler.register_interface(interface,
+                                        TestSampleServicePb,
+                                        server_name=server_name)
 
     listener.run_forever()
 
@@ -74,17 +78,20 @@ def run_client(text):
     print("client start", text)
     spanctx = SpanContext()
 
-    client = Client("test_app")
-    client.subscribe(interface)
+    client = Client("test_app", service_register=registry)
 
-    content = client.invoke_sync(interface, "hello",
-                                 SampleServicePbRequest(name=text).SerializeToString(),
-                                 timeout_ms=5000, spanctx=spanctx)
+    content = client.invoke_sync(
+        interface,
+        "hello",
+        SampleServicePbRequest(name=text).SerializeToString(),
+        timeout_ms=5000,
+        spanctx=spanctx)
     print("client", content)
     result = SampleServicePbResult()
     result.ParseFromString(content)
 
     print("client", result)
+
 
 if __name__ == "__main__":
     freeze_support()
