@@ -47,5 +47,5 @@ class BoltResponse(BoltPackage):
             raise EncodeError(e)
 
     @classmethod
-    def response_to(cls, content, request_id):  # pragma: no cover
-        return cls(empty_header, content, request_id=request_id, ptype=PTYPE.RESPONSE, cmdcode=CMDCODE.RESPONSE)
+    def response_to(cls, content, request_id, **kwargs):  # pragma: no cover
+        return cls(empty_header, content, request_id=request_id, ptype=PTYPE.RESPONSE, cmdcode=CMDCODE.RESPONSE, **kwargs)
