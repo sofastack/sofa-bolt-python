@@ -24,7 +24,7 @@ import requests
 from requests import ConnectionError
 
 from anthunder.helpers.singleton import Singleton
-from anthunder.model.service import ServiceMeta
+from anthunder.model.service import ProviderMetaInfo
 
 
 @attr.s
@@ -34,7 +34,6 @@ class PublishServiceRequest(object):
     port = attr.ib()
     protocolType = attr.ib(default="DEFAULT")
     onlyPublishInCloud = attr.ib(default=False)
-
 
 
 @attr.s
@@ -64,7 +63,11 @@ class ApplicationInfo(object):
 class MosnClient(object):
     __metaclass__ = Singleton
 
-    def __init__(self, *, keep_alive=True, service_api="http://127.0.0.1:13330/", rpc_address=("127.0.0.1", 12220)):
+    def __init__(self,
+                 *,
+                 keep_alive=True,
+                 service_api="http://127.0.0.1:13330/",
+                 rpc_address=("127.0.0.1", 12220)):
         """
         :param appinfo: application infomation data, see ApplicationInfo's comments.
         :type appinfo: ApplicationInfo, see ApplicationInfo's comments.
@@ -79,30 +82,32 @@ class MosnClient(object):
     def startup(self, appinfo: ApplicationInfo):
         with self._rlock:
             if not self._started:
-                self._post("configs/application", attr.asdict(appinfo, filter=lambda a, v: v))
+                self._post("configs/application",
+                           attr.asdict(appinfo, filter=lambda a, v: v))
                 self._started = True
             return self._started
 
-    def subscribe(self, service):
-        return self._post("services/subscribe", dict(serviceName=service.name))
+    def subscribe(self, interface: str):
+        return self._post("services/subscribe", dict(serviceName=interface))
 
-    def unsubscribe(self, service):
-        return self._post("services/unsubscribe",
-                          dict(serviceName=service.name))
+    def unsubscribe(self, interface: str):
+        return self._post("services/unsubscribe", dict(serviceName=interface))
 
-    def publish(self, address, service: ServiceMeta):
+    def publish(self, address, interface: str, provider: ProviderMetaInfo):
         """
         :param publish_service_request:
         :type publish_service_request: PublishServiceRequest
         :return:
         """
-        req = PublishServiceRequest(port=str(address[1]), serviceName=service.name, providerMetaInfo=service.provider_metadata)
+        req = PublishServiceRequest(port=str(address[1]),
+                                    serviceName=interface,
+                                    providerMetaInfo=provider)
         return self._post("services/publish", attr.asdict(req))
 
-    def unpublish(self, service):
-        return self._post("services/unpublish", dict(serviceName=service.name))
+    def unpublish(self, interface: str):
+        return self._post("services/unpublish", dict(serviceName=interface))
 
-    def get_address(self, service):
+    def get_address(self, interface: str):
         return self.rpc_address
 
     def _post(self, endpoint, json):

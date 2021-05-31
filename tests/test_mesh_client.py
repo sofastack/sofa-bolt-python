@@ -22,19 +22,17 @@ import unittest
 import attr
 import requests_mock
 
-from anthunder.discovery.mosn import MosnClient, ApplicationInfo, PublishServiceRequest
-from anthunder.model.service import ProviderMetaInfo, ServiceMeta
+from anthunder.discovery.mosn import MosnClient, ApplicationInfo
+from anthunder.model.service import ProviderMetaInfo
 
 
 class TestMeshClient(unittest.TestCase):
-    servicemeta = ServiceMeta(name="com.alipay.pybolt.test:1.0",
-                              provider_metadata=ProviderMetaInfo(
-                                  protocol="1",
-                                  version="4.0",
-                                  serializeType="protobuf",
-                                  appName="pybolt_test_app"))
-    subservicemeta = ServiceMeta(name="com.alipay.pybolt.subtest:1.0",
-                                 provider_metadata=None)
+    interface = "com.alipay.pybolt.test:1.0"
+    provider = ProviderMetaInfo(protocol="1",
+                                version="4.0",
+                                serializeType="protobuf",
+                                appName="pybolt_test_app")
+    subinterface = "com.alipay.pybolt.subtest:1.0"
     appmeta = ApplicationInfo("pybolt_test_app", "", "", "")
 
     @requests_mock.Mocker()
@@ -50,10 +48,12 @@ class TestMeshClient(unittest.TestCase):
                           text=json.dumps(dict(success=True)))
         session_mock.post('http://127.0.0.1:13330/services/publish',
                           text=json.dumps(dict(success=True)))
-        print(attr.asdict(self.servicemeta.provider_metadata))
+        print(attr.asdict(self.provider))
         mesh = MosnClient()
         mesh.startup(self.appmeta)
-        mesh.publish(("127.0.0.1", 12200), self.servicemeta)
+        mesh.publish(("127.0.0.1", 12200),
+                     self.interface,
+                     provider=self.provider)
 
     @requests_mock.Mocker()
     def test_subscribe(self, session_mock):
@@ -63,7 +63,7 @@ class TestMeshClient(unittest.TestCase):
                           text=json.dumps(dict(success=True)))
         mesh = MosnClient()
         mesh.startup(self.appmeta)
-        mesh.subscribe(self.subservicemeta)
+        mesh.subscribe(self.subinterface)
 
     @requests_mock.Mocker()
     def test_unpublish(self, session_mock):
@@ -73,7 +73,7 @@ class TestMeshClient(unittest.TestCase):
                           text=json.dumps(dict(success=True)))
         mesh = MosnClient()
         mesh.startup(self.appmeta)
-        mesh.unpublish(self.servicemeta)
+        mesh.unpublish(self.interface)
 
     @requests_mock.Mocker()
     def test_unsubscribe(self, session_mock):
@@ -84,7 +84,7 @@ class TestMeshClient(unittest.TestCase):
                           text=json.dumps(dict(success=True)))
         mesh = MosnClient()
         mesh.startup(self.appmeta)
-        mesh.unsubscribe(self.subservicemeta)
+        mesh.unsubscribe(self.subinterface)
 
 
 if __name__ == '__main__':

@@ -19,12 +19,3 @@ class ProviderMetaInfo(object):
     protocol = attr.ib(default="1")
     version = attr.ib(default="4.0")
     serializeType = attr.ib(default="protobuf")
-
-
-class ServiceMeta(object):
-    """
-    Service metadata object
-    """
-    def __init__(self, name: str, provider_metadata: ProviderMetaInfo):
-        self.name = name
-        self.provider_metadata = provider_metadata

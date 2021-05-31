@@ -32,7 +32,7 @@ try:
     from anthunder import AioListener as Listener, AioClient as Client
 except ImportError:
     from anthunder import SockListener as Listener, Client
-from anthunder import BaseService, ServiceMeta
+from anthunder import BaseService
 from anthunder.discovery import LocalRegistry
 
 from tests.proto.python.SampleServicePbRequest_pb2 import SampleServicePbRequest
@@ -40,7 +40,7 @@ from tests.proto.python.SampleServicePbResult_pb2 import SampleServicePbResult
 
 localaddress = ('127.0.0.1', 12200)
 localinterface = "com.alipay.rpc.common.service.facade.pb.SampleServicePb:1.0"
-service = ServiceMeta(localinterface, ProviderMetaInfo(appName="test_app"))
+provider = ProviderMetaInfo(appName="test_app")
 registry = LocalRegistry({localinterface: localaddress})
 
 
@@ -69,7 +69,7 @@ def run_server():
     # some initialize work
     server_name = "A_DYNAMIC_NAME"
 
-    listener.handler.register_interface(service.name,
+    listener.handler.register_interface(localinterface,
                                         TestSampleServicePb,
                                         server_name=server_name)
 
@@ -91,7 +91,7 @@ def run_client(text):
     client = Client("test_app", service_register=registry)
 
     content = client.invoke_sync(
-        service.name,
+        localinterface,
         "hello",
         SampleServicePbRequest(name=text).SerializeToString(),
         timeout_ms=5000,
