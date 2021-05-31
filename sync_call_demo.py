@@ -69,7 +69,7 @@ def run_server():
     # some initialize work
     server_name = "A_DYNAMIC_NAME"
 
-    listener.handler.register_interface(service,
+    listener.handler.register_interface(service.name,
                                         TestSampleServicePb,
                                         server_name=server_name)
 
@@ -91,7 +91,7 @@ def run_client(text):
     client = Client("test_app", service_register=registry)
 
     content = client.invoke_sync(
-        service,
+        service.name,
         "hello",
         SampleServicePbRequest(name=text).SerializeToString(),
         timeout_ms=5000,

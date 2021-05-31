@@ -50,8 +50,8 @@ class LocalRegistry(object):
     def unpublish(self, service):
         logger.warning("local registry does not support this method")
 
-    def get_address(self, service):
-        return self._service_addr_map.get(service.name)
+    def get_address(self, service: str):
+        return self._service_addr_map.get(service)
 
 
 class FixedAddressRegistry(LocalRegistry):
