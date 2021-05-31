@@ -96,7 +96,7 @@ class MosnClient(object):
         :type publish_service_request: PublishServiceRequest
         :return:
         """
-        req = PublishServiceRequest(port=str(address[1]), serviceName=service.name, providerMetaInfo=service.provider_metadata))
+        req = PublishServiceRequest(port=str(address[1]), serviceName=service.name, providerMetaInfo=service.provider_metadata)
         return self._post("services/publish", attr.asdict(req))
 
     def unpublish(self, service):
