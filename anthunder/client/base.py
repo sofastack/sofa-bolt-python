@@ -26,9 +26,6 @@ class _BaseClient(object):
     """
     Basic class for client implementation. Provides subscribe/unsubscribe method.
     """
-    mesh_service_address = ("127.0.0.1", 12220)
-    sofa_default_port = 12200
-
     def __init__(self, app_name, *, service_register=None):
         """
         Check ApplicationInfo's comment for params' explanations.
