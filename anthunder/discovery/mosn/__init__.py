@@ -63,11 +63,7 @@ class ApplicationInfo(object):
 class MosnClient(object):
     __metaclass__ = Singleton
 
-    def __init__(self,
-                 *,
-                 keep_alive=True,
-                 service_api="http://127.0.0.1:13330/",
-                 rpc_address=("127.0.0.1", 12220)):
+    def __init__(self, *, keep_alive=True, service_api="http://127.0.0.1:13330/"):
         """
         :param appinfo: application infomation data, see ApplicationInfo's comments.
         :type appinfo: ApplicationInfo, see ApplicationInfo's comments.
@@ -77,7 +73,6 @@ class MosnClient(object):
         self._started = False
         self.keep_alive = keep_alive
         self.service_api = service_api
-        self.rpc_address = rpc_address
 
     def startup(self, appinfo: ApplicationInfo):
         with self._rlock:
@@ -108,7 +103,8 @@ class MosnClient(object):
         return self._post("services/unpublish", dict(serviceName=interface))
 
     def get_address(self, interface: str):
-        return self.rpc_address
+        # TODO: should use address from subscribe result, and translate addresses and providerMetaInfo
+        return ("127.0.0.1", 12220)
 
     def _post(self, endpoint, json):
         addr = self.service_api + endpoint
