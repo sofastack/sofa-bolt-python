@@ -83,6 +83,7 @@ class MosnClient(object):
             return self._started
 
     def subscribe(self, interface: str):
+        # TODO: parse response and put to a service map (with metaInfo)
         return self._post("services/subscribe", dict(serviceName=interface))
 
     def unsubscribe(self, interface: str):
