@@ -39,10 +39,9 @@ from tests.proto.python.SampleServicePbRequest_pb2 import SampleServicePbRequest
 from tests.proto.python.SampleServicePbResult_pb2 import SampleServicePbResult
 
 localaddress = ('127.0.0.1', 12200)
-service = ServiceMeta(
-    "com.alipay.rpc.common.service.facade.pb.SampleServicePb:1.0",
-    ProviderMetaInfo(appName="test_app"))
-registry = LocalRegistry("test_app", {interface: localaddress})
+localinterface = "com.alipay.rpc.common.service.facade.pb.SampleServicePb:1.0"
+service = ServiceMeta(localinterface, ProviderMetaInfo(appName="test_app"))
+registry = LocalRegistry({localinterface: localaddress})
 
 
 class TestSampleServicePb(BaseService):
