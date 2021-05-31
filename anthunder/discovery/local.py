@@ -52,3 +52,15 @@ class LocalRegistry(object):
 
     def get_address(self, service):
         return self._service_addr_map.get(service.name)
+
+
+class FixedAddressRegistry(LocalRegistry):
+    """always returns fixed address, for test purpose only."""
+    def __init__(self, address):
+        self._address = address
+
+    def get_address(self, service):
+        return self._address
+
+
+LocalhostRegistry = FixedAddressRegistry(("127.0.0.1", 12200))
