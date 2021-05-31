@@ -28,6 +28,6 @@ logger = logging.getLogger(__name__)
 
 class FailResponse(BoltResponse):
     @classmethod
-    def response_to(cls, request_id, status_code):
+    def response_to(cls, request_id, status_code, **kwargs):
         return cls(empty_header, b'', respstatus=status_code,
-                   ptype=PTYPE.RESPONSE, cmdcode=CMDCODE.RESPONSE, request_id=request_id)
+                   ptype=PTYPE.RESPONSE, cmdcode=CMDCODE.RESPONSE, request_id=request_id, **kwargs)
