@@ -17,6 +17,7 @@
    File Name : demo.py
    Author : jiaqi.hjq
 """
+from anthunder.model.service import ProviderMetaInfo
 import logging
 
 from mytracer import SpanContext
@@ -31,14 +32,16 @@ try:
     from anthunder import AioListener as Listener, AioClient as Client
 except ImportError:
     from anthunder import SockListener as Listener, Client
-from anthunder import BaseService
+from anthunder import BaseService, ServiceMeta
 from anthunder.discovery import LocalRegistry
 
 from tests.proto.python.SampleServicePbRequest_pb2 import SampleServicePbRequest
 from tests.proto.python.SampleServicePbResult_pb2 import SampleServicePbResult
 
 localaddress = ('127.0.0.1', 12200)
-interface = "com.alipay.rpc.common.service.facade.pb.SampleServicePb:1.0"
+service = ServiceMeta(
+    "com.alipay.rpc.common.service.facade.pb.SampleServicePb:1.0",
+    ProviderMetaInfo(appName="test_app"))
 registry = LocalRegistry("test_app", {interface: localaddress})
 
 
@@ -67,11 +70,19 @@ def run_server():
     # some initialize work
     server_name = "A_DYNAMIC_NAME"
 
-    listener.handler.register_interface(interface,
+    listener.handler.register_interface(service,
                                         TestSampleServicePb,
                                         server_name=server_name)
 
     listener.run_forever()
+
+
+class ServiceProvider(object):
+    def __init__(self, client):
+        self._client = client
+
+    def hello(self, spanctx):
+        self._client.invoke_sync(spanctx)
 
 
 def run_client(text):
@@ -81,7 +92,7 @@ def run_client(text):
     client = Client("test_app", service_register=registry)
 
     content = client.invoke_sync(
-        interface,
+        service,
         "hello",
         SampleServicePbRequest(name=text).SerializeToString(),
         timeout_ms=5000,
