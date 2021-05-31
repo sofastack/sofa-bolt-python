@@ -91,12 +91,12 @@ class Client(_BaseClient):
         return PoolManager().connection_pool_from_pool_key(
             PoolManager.PoolCls.ConnectionCls.PoolKeyCls(*self._get_address(interface)))
 
-    def invoke_oneway(self, interface, method_name, content, spanctx=None, target_app="", uid=""):
+    def invoke_oneway(self, interface, method_name, content, spanctx=None, target_app="", uid="", **headers):
         _, c = self._raw_invoke(interface, method_name, content, target_app=target_app, uid=uid,
-                                spanctx=spanctx, bolt_ptype=PTYPE.ONEWAY)
+                                spanctx=spanctx, bolt_ptype=PTYPE.ONEWAY, **headers)
         self._get_pool(interface).put_conn(c)
 
-    def invoke_sync(self, interface, method_name, content, spanctx=None, target_app="", uid="", timeout_ms=None):
+    def invoke_sync(self, interface, method_name, content, spanctx=None, target_app="", uid="", timeout_ms=None, **headers):
         """
         :param request:
         :param timeout: if timeout > 0, this specifies the maximum wait time, in
@@ -112,7 +112,7 @@ class Client(_BaseClient):
         pkg = BoltResponse
         deadline = time.time() + timeout_ms / 1000 + 1
         req_id, c = self._raw_invoke(interface, method_name, content, target_app=target_app, uid=uid,
-                                     spanctx=spanctx, timeout_ms=timeout_ms)
+                                     spanctx=spanctx, timeout_ms=timeout_ms, **headers)
 
         with DefaultSelector() as sel:
             sel.register(c, EVENT_READ)
