@@ -25,7 +25,6 @@ from anthunder.exceptions import ServerError
 logger = logging.getLogger(__name__)
 
 
-
 class BaseHandler(object):
     """Handle bolt request"""
     # stores interface:
@@ -62,24 +61,40 @@ class BaseListener(object):
         self.server_kwargs = server_kwargs
         self.handler = self.handlerCls()
         self.service_register = service_register
+        self.service_provider = dict()
 
     def initialize(self):
         raise NotImplementedError()
+
+    def register_interface(self,
+                           interface,
+                           *,
+                           provider_meta,
+                           service_cls,
+                           service_cls_args=None,
+                           service_cls_kwargs=None):
+        service_cls_args = service_cls_args or tuple()
+        service_cls_kwargs = service_cls_kwargs or dict()
+        self.handler.register_interface(interface, service_cls,
+                                        *service_cls_args,
+                                        **service_cls_kwargs)
+        self.service_provider[interface] = provider_meta
 
     def publish(self):
         """
         Publish all the interfaces in handler.interface_mapping to mosnd
         """
         if self.service_register:
-            for service_name in self.handler.interface_mapping:
-                self.service_register.publish(self.address, service_name)
+            for service_name, provider_meta in self.service_register:
+                self.service_register.publish(self.address, service_name,
+                                              provider_meta)
 
     def unpublish(self):
         """
         Revoke all the interfaces in handler.interface_mapping from mosnd.
         """
         if self.service_register:
-            for service_name in self.handler.interface_mapping:
+            for service_name in self.service_register:
                 self.service_register.unpublish(service_name)
 
     def run_forever(self):

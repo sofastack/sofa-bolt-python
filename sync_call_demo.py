@@ -69,9 +69,7 @@ def run_server():
     # some initialize work
     server_name = "A_DYNAMIC_NAME"
 
-    listener.handler.register_interface(localinterface,
-                                        TestSampleServicePb,
-                                        server_name=server_name)
+    listener.register_interface(localinterface, provider_meta=provider, service_cls=TestSampleServicePb, service_cls_kwargs={"server_name":"server_name"})
 
     listener.run_forever()
 
