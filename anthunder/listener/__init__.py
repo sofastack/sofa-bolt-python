@@ -19,8 +19,7 @@
 
 """
 
-__all__ = ['BaseService', 'SockListener', 'AioListener']
+__all__ = ['SockListener', 'AioListener']
 
-from .base_listener import BaseService
 from .sock_listener import SockListener
 from .aio_listener import AioListener
