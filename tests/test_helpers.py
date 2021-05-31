@@ -20,7 +20,7 @@
 import logging
 import unittest
 
-from anthunder import ImmutableValueDict
+from anthunder.helpers.immutable_dict import ImmutableValueDict
 from anthunder.helpers.request_id import RequestId
 
 logger = logging.getLogger(__name__)
