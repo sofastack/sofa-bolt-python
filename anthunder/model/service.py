@@ -1,5 +1,6 @@
 import attr
 
+
 class BaseService(object):
     """
     Service classes provides service interfaces.
@@ -14,10 +15,10 @@ class BaseService(object):
 
 @attr.s
 class ProviderMetaInfo(object):
-    protocol = attr.ib()
-    version = attr.ib()
-    serializeType = attr.ib()
     appName = attr.ib()
+    protocol = attr.ib(default="1")
+    version = attr.ib(default="4.0")
+    serializeType = attr.ib(default="protobuf")
 
 
 class ServiceMeta(object):
