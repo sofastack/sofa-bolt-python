@@ -64,7 +64,7 @@ class ApplicationInfo(object):
 class MosnClient(object):
     __metaclass__ = Singleton
 
-    def __init__(self, *, keep_alive=True, service_api="http://127.0.0.1:13330/", rpc_address=("127.0.0.1", 12200)):
+    def __init__(self, *, keep_alive=True, service_api="http://127.0.0.1:13330/", rpc_address=("127.0.0.1", 12220)):
         """
         :param appinfo: application infomation data, see ApplicationInfo's comments.
         :type appinfo: ApplicationInfo, see ApplicationInfo's comments.
