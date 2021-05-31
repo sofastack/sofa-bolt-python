@@ -120,18 +120,25 @@ class AioListener(BaseListener):
             self._server.close()
             asyncio.run_coroutine_threadsafe(self._server.wait_closed(), self._loop)
 
-    async def _dispatch(self, call_type, request_id, sofa_header, body, *, timeout_ms, writer):
+    async def _dispatch(self, call_type, request_id, sofa_header, body, *, timeout_ms, codec, writer):
         """send request to handler"""
         service = sofa_header.get('sofa_head_target_service') or sofa_header.get('service')
         if not service:
-            await self._write_msg(writer,
-                                       FailResponse.response_to(request_id, RESPSTATUS.CLIENT_SEND_ERROR).to_stream())
+            await self._write_msg(
+                writer,
+                FailResponse.response_to(request_id,
+                                         RESPSTATUS.CLIENT_SEND_ERROR,
+                                         codec=codec).to_stream(),
+            )
             logger.error("Missing service name in sofa header [{}]".format(sofa_header))
             return
         method = sofa_header.get('sofa_head_method_name')
         if not method:
-            await self._write_msg(writer,
-                                       FailResponse.response_to(request_id, RESPSTATUS.CLIENT_SEND_ERROR).to_stream())
+            await self._write_msg(
+                writer,
+                FailResponse.response_to(request_id,
+                                         RESPSTATUS.CLIENT_SEND_ERROR,
+                                         codec=codec).to_stream())
             logger.error("Missing method name in sofa header [{}]".format(sofa_header))
             return
 
@@ -140,12 +147,20 @@ class AioListener(BaseListener):
         try:
             future = self.handler.handle_request(spanctx, service, method, body)
         except NoProcessorError:
-            await self._write_msg(writer,
-                                       FailResponse.response_to(request_id, RESPSTATUS.NO_PROCESSOR).to_stream())
+            await self._write_msg(
+                writer,
+                FailResponse.response_to(request_id,
+                                         RESPSTATUS.NO_PROCESSOR,
+                                         codec=codec).to_stream(),
+            )
             return
         except Exception:
-            await self._write_msg(writer,
-                                       FailResponse.response_to(request_id, RESPSTATUS.SERVER_EXCEPTION).to_stream())
+            await self._write_msg(
+                writer,
+                FailResponse.response_to(request_id,
+                                         RESPSTATUS.SERVER_EXCEPTION,
+                                         codec=codec).to_stream(),
+            )
             return
         if PTYPE.ONEWAY == call_type:
             # Just return future
@@ -156,17 +171,29 @@ class AioListener(BaseListener):
             result = await asyncio.wait_for(afut, timeout_ms / 1000 if timeout_ms > 0 else None)
         except (asyncio.CancelledError, asyncio.TimeoutError) as e:
             logger.error("Task run cancelled/timeout in {}ms, service:[{}]: error:[{}]".format(timeout_ms, service, e))
-            await self._write_msg(writer, FailResponse.response_to(request_id, RESPSTATUS.TIMEOUT).to_stream())
+            await self._write_msg(
+                writer,
+                FailResponse.response_to(request_id,
+                                         RESPSTATUS.TIMEOUT,
+                                         codec=codec).to_stream(),
+            )
             return
         except Exception:
             logger.error(traceback.format_exc())
-            await self._write_msg(writer, FailResponse.response_to(request_id, RESPSTATUS.UNKNOWN).to_stream())
+            await self._write_msg(
+                writer,
+                FailResponse.response_to(request_id,
+                                         RESPSTATUS.UNKNOWN,
+                                         codec=codec).to_stream(),
+            )
             return
 
         if result:
             header = dict()
             tracer.inject(spanctx, opentracing.Format.TEXT_MAP, header)
-            pkg = BoltResponse.response_to(result, request_id=request_id)
+            pkg = BoltResponse.response_to(result,
+                                           request_id=request_id,
+                                           codec=codec)
             try:
                 await self._write_msg(writer, pkg.to_stream())
             except Exception:
@@ -224,18 +251,24 @@ class AioListener(BaseListener):
                     raise ClientError("wrong class_name:[{}]".format(class_name))
 
                 logger.debug("dispatching request[{}]".format(header['request_id']))
-                asyncio.ensure_future(self._dispatch(call_type, header['request_id'], sofa_header, body,
-                                                     timeout_ms=header['timeout'], writer=writer))
+                asyncio.ensure_future(
+                    self._dispatch(call_type,
+                                   header['request_id'],
+                                   sofa_header,
+                                   body,
+                                   timeout_ms=header['timeout'],
+                                   codec=header['codec'],
+                                   writer=writer))
             except ClientError as e:
                 logger.error(str(e) + " returning CLIENT_SEND_ERROR")
                 await self._write_msg(writer, FailResponse.response_to(header['request_id'],
-                                                                            RESPSTATUS.CLIENT_SEND_ERROR).to_stream())
+                                                                       RESPSTATUS.CLIENT_SEND_ERROR).to_stream())
                 continue
 
             except ProtocolError as e:
                 logger.error(str(e) + " returning CODEC_EXCEPTION")
                 await self._write_msg(writer, FailResponse.response_to(header['request_id'],
-                                                                            RESPSTATUS.CODEC_EXCEPTION).to_stream())
+                                                                       RESPSTATUS.CODEC_EXCEPTION).to_stream())
                 continue
 
             except EOFError as e:
