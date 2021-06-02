@@ -21,7 +21,6 @@
    Change Activity:
         version0 : 2018/5/25 16:30 by jiaqi.hjq  init
 """
-import six
 import threading
 
 import opentracing

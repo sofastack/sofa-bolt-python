@@ -22,8 +22,7 @@
 """
 import logging
 import threading
-
-from six.moves import queue
+import queue
 
 from .connection import SocketConnection
 from .exceptions import LocationValueError, ClosedPoolError, EmptyPoolError
@@ -42,13 +41,15 @@ class ConnectionPool(object):
     QueueCls = queue.LifoQueue
     ConnectionCls = SocketConnection
 
-    def __init__(self, pool_key,
-                 initial_connections=1,
-                 max_connections=20,
-                 max_free_connections=5,
-                 min_free_connections=1,
-                 block=False,
-                 ):
+    def __init__(
+        self,
+        pool_key,
+        initial_connections=1,
+        max_connections=20,
+        max_free_connections=5,
+        min_free_connections=1,
+        block=False,
+    ):
         if not pool_key:
             raise LocationValueError("No pool_key specified.")
 
@@ -80,13 +81,13 @@ class ConnectionPool(object):
     def _new_conn(self):
         with self._lock:
             if self.num_connections >= self.max_connections:
-                raise EmptyPoolError(self,
-                                     "Pool reached maximum size and no more "
-                                     "connections are allowed.")
+                raise EmptyPoolError(
+                    self, "Pool reached maximum size and no more "
+                    "connections are allowed.")
 
         self.num_connections += 1
-        log.debug("Starting new connection (%d): %r",
-                  self.num_connections, self.pool_key)
+        log.debug("Starting new connection (%d): %r", self.num_connections,
+                  self.pool_key)
 
         conn = self.ConnectionCls(self.pool_key)
         return conn
@@ -115,9 +116,9 @@ class ConnectionPool(object):
 
         except queue.Empty:
             if self.block:
-                raise EmptyPoolError(self,
-                                     "Pool reached maximum size and no more "
-                                     "connections are allowed.")
+                raise EmptyPoolError(
+                    self, "Pool reached maximum size and no more "
+                    "connections are allowed.")
             pass  # Oh well, we'll create a new connection then
 
         # If this is a persistent connection, check if it got disconnected
@@ -151,9 +152,8 @@ class ConnectionPool(object):
             pass
         except queue.Full:
             # This should never happen if self.block == True
-            log.warning(
-                "Connection pool is full, discarding connection: %s",
-                self.pool_key)
+            log.warning("Connection pool is full, discarding connection: %s",
+                        self.pool_key)
             with self._lock:
                 self.num_connections -= 1
 
