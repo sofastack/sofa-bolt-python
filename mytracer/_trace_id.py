@@ -26,8 +26,6 @@ import os
 import socket
 import time
 import ipaddress
-import six
-from six.moves import range
 
 
 class TraceId(object):
@@ -35,7 +33,7 @@ class TraceId(object):
 
     def __init__(self, trace=None):
         if not isinstance(trace, str):
-            _ip = int(ipaddress.ip_address(six.u(socket.gethostbyname(socket.gethostname()))))
+            _ip = int(ipaddress.ip_address(socket.gethostbyname(socket.gethostname())))
             _ts = int(time.time() * 1000)
             _sq = next(self._sequence)
             _pid = os.getpid()
