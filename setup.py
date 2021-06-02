@@ -28,20 +28,10 @@ install_requires = [
     "opentracing==1.3.0",
     "requests>=2.13.0",
     "attrs>=18.1.0",
-    "six",
 ]
 tests_requires=[
     "requests-mock>=1.5.0",
 ]
-if sys.version_info <= (3, 3):
-    install_requires.extend([
-        'selectors34',
-        'enum34',
-        'ipaddress',
-    ])
-    tests_requires.extend([
-        'mock',
-    ])
 
 with open('README.en.md', 'r', encoding='utf-8') as f:
     readme = f.read()
@@ -69,12 +59,12 @@ setup(
         'Natural Language :: English',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy'
     ],
