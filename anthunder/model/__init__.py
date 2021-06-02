@@ -14,23 +14,6 @@
     See the License for the specific language governing permissions and
     limitations under the License.
    ------------------------------------------------------
-   File Name : test_client
+   File Name : base_listener
    Author : jiaqi.hjq
-   Create Time : 2018/5/18 11:19
-   Description : describe the main function of this file
-   Change Activity:
-        version0 : 2018/5/18 11:19 by jiaqi.hjq  init
 """
-import unittest
-
-
-class TestClient(unittest.TestCase):
-    def test_client_get_address(self):
-        from anthunder.client.base import _BaseClient
-        addr = _BaseClient("anthunderTestApp")._get_address("com.alipay.rpc.no_such_service")
-        print(addr)
-        self.assertEqual(addr, ('127.0.0.1', 12220))
-
-
-if __name__ == '__main__':
-    unittest.main()

@@ -47,7 +47,6 @@ logger = logging.getLogger(__name__)
 class AioClient(_BaseClient):
     __metaclass__ = Singleton
     """bolt client implemented with asyncio"""
-
     def __init__(self, app_name, **kwargs):
         super(AioClient, self).__init__(app_name, **kwargs)
         self._loop = asyncio.new_event_loop()
@@ -64,10 +63,11 @@ class AioClient(_BaseClient):
 
         t = threading.Thread(target=_t, daemon=True)
         t.start()
-        if self._mesh_client:
-            # ensure mesh client init success, and we will connect to mesh_service_address
+        if self._service_register and getattr(self._service_register,
+                                              "keep_alive", False):
             logger.debug("has mesh client, start a heartbeat thread")
-            asyncio.run_coroutine_threadsafe(self._heartbeat_timer(self._get_address(None)), self._loop)
+            asyncio.run_coroutine_threadsafe(
+                self._heartbeat_timer(self._get_address(None)), self._loop)
         logger.debug("client coro thread started")
         return t
 
@@ -76,37 +76,52 @@ class AioClient(_BaseClient):
         pkg = BoltRequest.new_request(header, content, timeout_ms=-1)
         asyncio.run_coroutine_threadsafe(self.invoke(pkg), loop=self._loop)
 
-    def invoke_sync(self, interface, method, content, *, spanctx, timeout_ms, **headers):
+    def invoke_sync(self, interface, method, content, *, spanctx, timeout_ms,
+                    **headers):
         """blocking call to interface, returns responsepkg.content(as bytes)"""
         assert isinstance(timeout_ms, (int, float))
         header = SofaHeader.build_header(spanctx, interface, method, **headers)
         pkg = BoltRequest.new_request(header, content, timeout_ms=timeout_ms)
-        fut = asyncio.run_coroutine_threadsafe(self.invoke(pkg), loop=self._loop)
+        fut = asyncio.run_coroutine_threadsafe(self.invoke(pkg),
+                                               loop=self._loop)
         try:
             ret = fut.result(timeout=timeout_ms / 1000)
         except (TimeoutError, CancelledError) as e:
-            logger.error("call to [{}:{}] timeout/cancelled. {}".format(interface, method, e))
+            logger.error("call to [{}:{}] timeout/cancelled. {}".format(
+                interface, method, e))
             raise
         return ret.content
 
-    def invoke_async(self, interface, method, content, *, spanctx, callback=None, timeout_ms=None, **headers):
+    def invoke_async(self,
+                     interface,
+                     method,
+                     content,
+                     *,
+                     spanctx,
+                     callback=None,
+                     timeout_ms=None,
+                     **headers):
         """
         call callback if callback is a callable,
         otherwise return a future
         Callback should recv a bytes object as the only argument, which is the response pkg's content
         """
         header = SofaHeader.build_header(spanctx, interface, method, **headers)
-        pkg = BoltRequest.new_request(header, content, timeout_ms=timeout_ms or -1)
-        fut = asyncio.run_coroutine_threadsafe(self.invoke(pkg), loop=self._loop)
+        pkg = BoltRequest.new_request(header,
+                                      content,
+                                      timeout_ms=timeout_ms or -1)
+        fut = asyncio.run_coroutine_threadsafe(self.invoke(pkg),
+                                               loop=self._loop)
         if callable(callback):
-            fut.add_done_callback(self.callback_wrapper(callback, timeout_ms / 1000 if timeout_ms else None))
+            fut.add_done_callback(
+                self.callback_wrapper(
+                    callback, timeout_ms / 1000 if timeout_ms else None))
             return fut
         return fut
 
     @staticmethod
     def callback_wrapper(callback, timeout=None):
         """get future's result, then feed to callback"""
-
         @functools.wraps(callback)
         def _inner(fut):
             try:
@@ -134,11 +149,14 @@ class AioClient(_BaseClient):
         pkg = HeartbeatRequest.new_request()
         resp = await self.invoke(pkg, address=address)
         if resp.request_id != pkg.request_id:
-            logger.error("heartbeat response request_id({}) mismatch with request({}).".format(resp.request_id,
-                                                                                               pkg.request_id))
+            logger.error(
+                "heartbeat response request_id({}) mismatch with request({}).".
+                format(resp.request_id, pkg.request_id))
             return False
         if resp.respstatus != RESPSTATUS.SUCCESS:
-            logger.error("heartbeat response status ({}) on request({}).".format(resp.respstatus, resp.request_id))
+            logger.error(
+                "heartbeat response status ({}) on request({}).".format(
+                    resp.respstatus, resp.request_id))
             return False
         return True
 
@@ -153,8 +171,10 @@ class AioClient(_BaseClient):
                     return self.connection_mapping[address]
 
                 reader, writer = await asyncio.open_connection(*address)
-                task = asyncio.ensure_future(self._recv_response(reader, writer))
-                return self.connection_mapping.setdefault(address, (task, writer))
+                task = asyncio.ensure_future(
+                    self._recv_response(reader, writer))
+                return self.connection_mapping.setdefault(
+                    address, (task, writer))
         except Exception as e:
             logger.error("Get connection of {} failed: {}".format(address, e))
             raise
@@ -169,7 +189,8 @@ class AioClient(_BaseClient):
 
         event = await self._send_request(request, address=address)
         if event is None:
-            logger.debug("no related event, should be a async/oneway call, return now")
+            logger.debug(
+                "no related event, should be a async/oneway call, return now")
             return
         await event.wait()
         return self.response_mapping.pop(request.request_id)
@@ -192,7 +213,9 @@ class AioClient(_BaseClient):
                 writer.write(request.to_stream())
                 await writer.drain()
             except Exception as e:
-                logger.error("Request sent to {} failed: {}, may try again.".format(address, e))
+                logger.error(
+                    "Request sent to {} failed: {}, may try again.".format(
+                        address, e))
                 readtask.cancel()
                 self.connection_mapping.pop(address)
                 self._pending_dial.pop(address)
@@ -203,7 +226,8 @@ class AioClient(_BaseClient):
         try:
             await _send()
         except PyboltError:
-            logger.error("failed to send request {}".format(request.request_id))
+            logger.error("failed to send request {}".format(
+                request.request_id))
             self.request_mapping.pop(request.request_id)
             return
         except Exception:
@@ -226,12 +250,16 @@ class AioClient(_BaseClient):
         while True:
             pkg = None
             try:
-                fixed_header_bs = await reader.readexactly(BoltResponse.bolt_header_size())
+                fixed_header_bs = await reader.readexactly(
+                    BoltResponse.bolt_header_size())
                 header = BoltResponse.bolt_header_from_stream(fixed_header_bs)
-                bs = await reader.readexactly(header['class_len'] + header['header_len'] + header['content_len'])
+                bs = await reader.readexactly(header['class_len'] +
+                                              header['header_len'] +
+                                              header['content_len'])
                 pkg = BoltResponse.bolt_content_from_stream(bs, header)
                 if pkg.class_name != BoltResponse.class_name:
-                    raise ServerError("wrong class_name:[{}]".format(pkg.class_name))
+                    raise ServerError("wrong class_name:[{}]".format(
+                        pkg.class_name))
                 if pkg.cmdcode == CMDCODE.HEARTBEAT:
                     continue
                 elif pkg.cmdcode == CMDCODE.REQUEST:
@@ -245,7 +273,8 @@ class AioClient(_BaseClient):
 
             except PyboltError as e:
                 logger.error(e)
-            except (asyncio.CancelledError, EOFError, ConnectionResetError) as e:
+            except (asyncio.CancelledError, EOFError,
+                    ConnectionResetError) as e:
                 logger.error(e)
                 writer.close()
                 break

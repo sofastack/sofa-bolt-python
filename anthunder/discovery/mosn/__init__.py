@@ -24,6 +24,7 @@ import requests
 from requests import ConnectionError
 
 from anthunder.helpers.singleton import Singleton
+from anthunder.model.service import ProviderMetaInfo
 
 
 @attr.s
@@ -33,14 +34,6 @@ class PublishServiceRequest(object):
     port = attr.ib()
     protocolType = attr.ib(default="DEFAULT")
     onlyPublishInCloud = attr.ib(default=False)
-
-
-@attr.s
-class ProviderMetaInfo(object):
-    protocol = attr.ib()
-    version = attr.ib()
-    serializeType = attr.ib()
-    appName = attr.ib()
 
 
 @attr.s
@@ -67,51 +60,61 @@ class ApplicationInfo(object):
     antShareCloud = attr.ib(default=False)
 
 
-class MeshClient(object):
+class MosnClient(object):
     __metaclass__ = Singleton
-    _server = "http://127.0.0.1:13330/{}".format
 
-    def __init__(self, appinfo):
+    def __init__(self, *, keep_alive=True, service_api="http://127.0.0.1:13330/"):
         """
         :param appinfo: application infomation data, see ApplicationInfo's comments.
         :type appinfo: ApplicationInfo, see ApplicationInfo's comments.
         """
-        self.appinfo = appinfo
         self._sess = requests.session()
         self._rlock = RLock()
         self._started = False
+        self.keep_alive = keep_alive
+        self.service_api = service_api
 
-    def startup(self):
+    def startup(self, appinfo: ApplicationInfo):
         with self._rlock:
             if not self._started:
-                self._post("configs/application", attr.asdict(self.appinfo, filter=lambda a, v: v))
+                self._post("configs/application",
+                           attr.asdict(appinfo, filter=lambda a, v: v))
                 self._started = True
             return self._started
 
-    def subscribe(self, service_str):
-        return self._post("services/subscribe", dict(serviceName=service_str))
+    def subscribe(self, interface: str):
+        # TODO: parse response and put to a service map (with metaInfo)
+        return self._post("services/subscribe", dict(serviceName=interface))
 
-    def unsubscribe(self, service_str):
-        return self._post("services/unsubscribe", dict(serviceName=service_str))
+    def unsubscribe(self, interface: str):
+        return self._post("services/unsubscribe", dict(serviceName=interface))
 
-    def publish(self, publish_service_request):
+    def publish(self, address, interface: str, provider: ProviderMetaInfo):
         """
         :param publish_service_request:
         :type publish_service_request: PublishServiceRequest
         :return:
         """
-        return self._post("services/publish", attr.asdict(publish_service_request))
+        req = PublishServiceRequest(port=str(address[1]),
+                                    serviceName=interface,
+                                    providerMetaInfo=provider)
+        return self._post("services/publish", attr.asdict(req))
 
-    def unpublish(self, service_str):
-        return self._post("services/unpublish", dict(serviceName=service_str))
+    def unpublish(self, interface: str):
+        return self._post("services/unpublish", dict(serviceName=interface))
+
+    def get_address(self, interface: str):
+        # TODO: should use address from subscribe result, and translate addresses and providerMetaInfo
+        return ("127.0.0.1", 12220)
 
     def _post(self, endpoint, json):
-        addr = self._server(endpoint)
+        addr = self.service_api + endpoint
         r = self._sess.post(addr, json=json)
         if r.status_code != 200:
-            raise ConnectionError("Connect to service mesh failed: {}".format(r.status_code))
+            raise ConnectionError("Connect to service mesh failed: {}".format(
+                r.status_code))
         result = r.json()
         if result.get('success') is not True:
-            raise ConnectionError("Connect to service mesh failed: {}".format(result.get('errorMessage',
-                                                                                         "MISSING ERROR MESSAGE")))
+            raise ConnectionError("Connect to service mesh failed: {}".format(
+                result.get('errorMessage', "MISSING ERROR MESSAGE")))
         return result

@@ -31,9 +31,8 @@ from random import randint
 
 from mytracer import SpanContext
 
-from anthunder import AioClient
-from anthunder.listener.aio_listener import AioListener
-from anthunder.listener.base_listener import BaseService
+from anthunder import AioClient, AioListener, BaseService
+from anthunder.discovery.local import LocalhostRegistry
 from tests.proto.python import SampleService
 from tests.proto.python.SampleServicePbRequest_pb2 import SampleServicePbRequest
 from tests.proto.python.SampleServicePbResult_pb2 import SampleServicePbResult
@@ -65,37 +64,44 @@ class TestListener(unittest.TestCase):
                 obj = SampleServicePbRequest()
                 obj.ParseFromString(bs)
                 print("Processing Request", obj)
-                return SampleServicePbResult(result=obj.name).SerializeToString()
+                return SampleServicePbResult(
+                    result=obj.name).SerializeToString()
 
-        cls.listener.handler.register_interface(cls.interface, TestSampleServicePb, seed=randint(50, 300) / 1000)
+        cls.listener.handler.register_interface(cls.interface,
+                                                TestSampleServicePb,
+                                                seed=randint(50, 300) / 1000)
 
     def test_server(self):
         # mocked, will call to localhost
+        threading.Thread(target=SampleService.SampleService(
+            SpanContext()).hello,
+                         kwargs=dict(name="abcde-test0")).start()
+        result = SampleService.SampleService(
+            SpanContext()).hello(name="abcde-test")
 
-        with mock.patch.object(SampleService, "SERVICE_MAP", dict()):
-            threading.Thread(target=SampleService.SampleService(SpanContext()).hello,
-                             kwargs=dict(name="abcde-test0")).start()
-            result = SampleService.SampleService(SpanContext()).hello(name="abcde-test")
-
-            print(result)
+        print(result)
         self.assertEqual(result.result, "abcde-test")
 
     def test_aio_client(self):
-        client = AioClient("anthunderTestApp")
+        client = AioClient("anthunderTestApp",
+                           service_register=LocalhostRegistry)
         _result = list()
         _ts = list()
 
         def _call(name):
-            content = client.invoke_sync(self.interface, "hello",
-                                         SampleServicePbRequest(name=str(name)).SerializeToString(),
-                                         timeout_ms=5000, spanctx=SpanContext())
+            content = client.invoke_sync(
+                self.interface,
+                "hello",
+                SampleServicePbRequest(name=str(name)).SerializeToString(),
+                timeout_ms=5000,
+                spanctx=SpanContext())
             result = SampleServicePbResult()
             result.ParseFromString(content)
             print(result.result == str(name))
             _result.append(result.result == str(name))
 
         for i in range(10):
-            t = threading.Thread(target=_call, args=(i,))
+            t = threading.Thread(target=_call, args=(i, ))
             t.start()
             _ts.append(t)
 
@@ -127,7 +133,8 @@ class TestListener(unittest.TestCase):
 
     def test_aio_client_async(self):
         print("async client")
-        client = AioClient("anthunderTestApp")
+        client = AioClient("anthunderTestApp",
+                           service_register=LocalhostRegistry)
         _result = list()
 
         def _cb(content, expect):
@@ -137,10 +144,14 @@ class TestListener(unittest.TestCase):
             _result.append(expect == result.result)
 
         def _acall(name):
-            return client.invoke_async(self.interface, "hello",
-                                       SampleServicePbRequest(name="async" + str(name)).SerializeToString(),
-                                       timeout_ms=500, callback=functools.partial(_cb, expect="async" + str(name)),
-                                       spanctx=SpanContext())
+            return client.invoke_async(
+                self.interface,
+                "hello",
+                SampleServicePbRequest(name="async" +
+                                       str(name)).SerializeToString(),
+                timeout_ms=500,
+                callback=functools.partial(_cb, expect="async" + str(name)),
+                spanctx=SpanContext())
 
         fs = [_acall(i) for i in range(10)]
         concurrent.futures.wait(fs, timeout=1.5)
