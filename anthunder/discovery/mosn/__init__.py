@@ -107,6 +107,9 @@ class MosnClient(object):
         # TODO: should use address from subscribe result, and translate addresses and providerMetaInfo
         return ("127.0.0.1", 12220)
 
+    def get_metadata(self, interface: str):
+        return 
+
     def _post(self, endpoint, json):
         addr = self.service_api + endpoint
         r = self._sess.post(addr, json=json)

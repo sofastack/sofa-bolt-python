@@ -22,6 +22,10 @@ import logging
 logger = logging.getLogger(__name__)
 from anthunder.helpers.singleton import Singleton
 from anthunder.helpers.immutable_dict import ImmutableValueDict
+from anthunder.model.service import ProviderMetaInfo
+
+
+DefaultProviderMeta = ProviderMetaInfo('default')
 
 
 class LocalRegistry(object):
@@ -53,14 +57,21 @@ class LocalRegistry(object):
     def get_address(self, service: str):
         return self._service_addr_map.get(service)
 
+    def get_metadata(self, service: str):
+        return self._service_meta_map.get(service, DefaultProviderMeta)
+
 
 class FixedAddressRegistry(LocalRegistry):
     """always returns fixed address, for test purpose only."""
-    def __init__(self, address):
+    def __init__(self, address, metadata=DefaultProviderMeta):
         self._address = address
+        self._metadata = metadata
 
     def get_address(self, service):
         return self._address
+
+    def get_metadata(self, service: str):
+        return self._metadata
 
 
 LocalhostRegistry = FixedAddressRegistry(("127.0.0.1", 12200))
