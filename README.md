@@ -24,8 +24,10 @@ anthunder是一个python实现的BOLT协议库，提供BOLT client和server功�
 - [x] 支持Bolt+pb调用服务端（client端）
 - [x] 支持通过servicemesh的服务发现与服务发布
 - [x] 支持使用Bolt+pb提供服务（server端）
+- [x] 支持其它序列化协议
 
 ## Tutorial
+以下示例以使用protobuf序列化为例。其它序列化协议请参考demo。
 
 ### 做为调用方
 0. 获取服务方提供的 `.proto` 文件
