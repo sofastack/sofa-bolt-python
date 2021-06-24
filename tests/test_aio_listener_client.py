@@ -21,6 +21,7 @@ import unittest
 
 from anthunder.command.heartbeat import HeartbeatRequest, HeartbeatResponse
 from anthunder.protocol.constants import RESPSTATUS
+from anthunder.discovery.local import FixedAddressRegistry
 
 import concurrent.futures
 import functools
@@ -32,7 +33,6 @@ from random import randint
 from mytracer import SpanContext
 
 from anthunder import AioClient, AioListener, BaseService
-from anthunder.discovery.local import LocalhostRegistry
 from tests.proto.python import SampleService
 from tests.proto.python.SampleServicePbRequest_pb2 import SampleServicePbRequest
 from tests.proto.python.SampleServicePbResult_pb2 import SampleServicePbResult
@@ -83,8 +83,9 @@ class TestListener(unittest.TestCase):
         self.assertEqual(result.result, "abcde-test")
 
     def test_aio_client(self):
-        client = AioClient("anthunderTestApp",
-                           service_register=LocalhostRegistry)
+        client = AioClient(
+            "anthunderTestApp",
+            service_register=FixedAddressRegistry("127.0.0.1:12200"))
         _result = list()
         _ts = list()
 
@@ -133,8 +134,9 @@ class TestListener(unittest.TestCase):
 
     def test_aio_client_async(self):
         print("async client")
-        client = AioClient("anthunderTestApp",
-                           service_register=LocalhostRegistry)
+        client = AioClient(
+            "anthunderTestApp",
+            service_register=FixedAddressRegistry("127.0.0.1:12200"))
         _result = list()
 
         def _cb(content, expect):

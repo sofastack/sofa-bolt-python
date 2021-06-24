@@ -1,10 +1,12 @@
 # automatically generated file, edit carefully!!
-from anthunder.discovery.local import LocalhostRegistry
+from anthunder.discovery.local import FixedAddressRegistry
 from anthunder import Client, Request
 
 
 class SampleService(Request):
-    CLIENT = Client("anthunderTestAppName", service_register=LocalhostRegistry)
+    CLIENT = Client("anthunderTestAppName",
+                    service_register=FixedAddressRegistry("127.0.0.1:12200"))
+
     def hello(self, **kwargs):
         from .SampleServicePbRequest_pb2 import SampleServicePbRequest as RequestMessage
         from .SampleServicePbResult_pb2 import SampleServicePbResult as ResultMessage
