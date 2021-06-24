@@ -92,7 +92,7 @@ class MosnClient(object):
         #                    `json:"serviceName"`
         #                    `json:"datas"`
         ret = self._post("services/subscribe", dict(serviceName=interface))
-        meta = SubServiceMeta.from_bolt_url(ret.datas[0])
+        meta = SubServiceMeta.from_bolt_url(ret["datas"][0])
         self._service_meta_dict[interface] = meta
         return
 
