@@ -18,6 +18,7 @@
    Author : jiaqi.hjq
 """
 import attr
+from urllib.parse import parse_qs
 
 
 class BaseService(object):
@@ -34,7 +35,30 @@ class BaseService(object):
 
 @attr.s
 class ProviderMetaInfo(object):
-    appName = attr.ib()
+    appName = attr.ib(default="default")
     protocol = attr.ib(default="1")
     version = attr.ib(default="4.0")
     serializeType = attr.ib(default="protobuf")
+
+
+def SubServiceMeta(object):
+    def __init__(self, address_list: list, metadata=None):
+        self.address_list = address_list
+        self.metadata = metadata or ProviderMetaInfo()
+
+    @classmethod
+    def from_bolt_url(cls, url: str):
+        # 127.0.0.1:12220?p=1&v=4.0&_SERIALIZETYPE=hessian2&app_name=someapp
+        # 127.0.0.1:12220?p=1&v=4.0&_SERIALIZETYPE=protobuf&app_name=someapp
+        addr, qs = url.split('?', 2)
+        qsd = parse_qs(qs)
+        pmi = ProviderMetaInfo(qsd.get('app_name', "default"),
+                               qsd.get("protocol", "1"),
+                               qsd.get("version", "4.0"),
+                               qsd.get("_SERIALIZETYPE", "protobuf"))
+
+        o = cls([addr], pmi)
+        return o
+
+
+PubServiceMeta = ProviderMetaInfo

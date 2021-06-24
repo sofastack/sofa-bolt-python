@@ -22,10 +22,7 @@ import logging
 logger = logging.getLogger(__name__)
 from anthunder.helpers.singleton import Singleton
 from anthunder.helpers.immutable_dict import ImmutableValueDict
-from anthunder.model.service import ProviderMetaInfo
-
-
-DefaultProviderMeta = ProviderMetaInfo('default')
+from anthunder.model.service import SubServiceMeta, ProviderMetaInfo
 
 
 class LocalRegistry(object):
@@ -40,7 +37,7 @@ class LocalRegistry(object):
     keep_alive = False  # only for mesh heartbeat
 
     def __init__(self, servicemap):
-        self._service_addr_map = ImmutableValueDict(servicemap)
+        self._service_meta_map = ImmutableValueDict(servicemap)
 
     def subscribe(self, service):
         logger.warning("local registry does not support this method")
@@ -54,24 +51,34 @@ class LocalRegistry(object):
     def unpublish(self, service):
         logger.warning("local registry does not support this method")
 
-    def get_address(self, service: str):
-        return self._service_addr_map.get(service)
+    def get_address(self, interface: str) -> str:
+        """
+        :return: address str
+        """
+        meta = self._service_meta_map.get(interface)
+        if meta is None:
+            raise Exception(
+                "No address available for {}, you meed to declare it explicitly in LocalRegistry's init parameter"
+                .format(interface))
+        return meta.address[0]
 
-    def get_metadata(self, service: str):
-        return self._service_meta_map.get(service, DefaultProviderMeta)
+    def get_metadata(self, interface: str) -> ProviderMetaInfo:
+        meta = self._service_meta_map.get(interface)
+        if meta is None:
+            raise Exception(
+                "No available interface for {}, you meed to declare it explicitly in LocalRegistry's init parameter"
+                .format(interface))
+        return meta.metadata
 
 
 class FixedAddressRegistry(LocalRegistry):
     """always returns fixed address, for test purpose only."""
-    def __init__(self, address, metadata=DefaultProviderMeta):
+    def __init__(self, address, metadata: ProviderMetaInfo = None):
         self._address = address
-        self._metadata = metadata
+        self._metadata = metadata or ProviderMetaInfo()
 
-    def get_address(self, service):
+    def get_address(self, service) -> str:
         return self._address
 
-    def get_metadata(self, service: str):
+    def get_metadata(self, service: str) -> ProviderMetaInfo:
         return self._metadata
-
-
-LocalhostRegistry = FixedAddressRegistry(("127.0.0.1", 12200))

@@ -66,9 +66,11 @@ class Client(_BaseClient):
         """
         # FIXME spanctx might be None here
         logger.debug("Calling interface {}, spanctx: {}".format(interface, spanctx.baggage))
+        serialize = self._service_register
         header = SofaHeader.build_header(spanctx, interface, method_name, target_app=target_app, uid=uid,
                                          **sofa_headers_extra)
-        p = BoltRequest.new_request(header, content, timeout_ms=timeout_ms or -1, ptype=bolt_ptype)
+        p = BoltRequest.new_request(header, content, timeout_ms=timeout_ms or -1, ptype=bolt_ptype, 
+                                    codec=self._get_serialize_protocol())
         for i in range(3):
             # try three times, to avoid connection failure
             try:

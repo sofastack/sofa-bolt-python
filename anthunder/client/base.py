@@ -17,6 +17,7 @@
    File Name : base.py
    Author : jiaqi.hjq
 """
+from build.lib.anthunder.protocol.constants import CODEC
 import logging
 
 logger = logging.getLogger(__name__)
@@ -32,8 +33,23 @@ class _BaseClient(object):
         """
         self._service_register = service_register
 
-    def _get_address(self, interface):
-        return self._service_register.get_address(interface)
+    def _get_address(self, interface) -> tuple:
+        if interface is None:
+            # on heartbeat, interface would be None.
+            # for compatibility, return localaddress.
+            return ("127.0.0.1", 12220)
+        addstr = self._service_register.get_address(interface)
+        host, port = addstr.split(':', 2)
+        port = int(port)
+        return host, port
+
+    def _get_serialize_protocol(self, interface):
+        meta = self._service_register.get_metadata(interface)
+        if meta.serializeType == "hessian2":
+            return CODEC.HESSIAN
+        if meta.serializeType == "protobuf":
+            return CODEC.PROTOBUF
+        raise ValueError("Unknown serializeType {} of interface {}".format(meta.serializeType, interface))
 
     def invoke_sync(self, interface, method, content, **kwargs):
         raise NotImplementedError()
