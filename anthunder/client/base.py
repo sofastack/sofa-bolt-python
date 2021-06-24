@@ -17,8 +17,10 @@
    File Name : base.py
    Author : jiaqi.hjq
 """
-from build.lib.anthunder.protocol.constants import CODEC
 import logging
+
+from anthunder.protocol.constants import CODEC
+
 
 logger = logging.getLogger(__name__)
 
