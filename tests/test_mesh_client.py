@@ -60,7 +60,7 @@ class TestMeshClient(unittest.TestCase):
         session_mock.post('http://127.0.0.1:13330/configs/application',
                           text=json.dumps(dict(success=True)))
         session_mock.post('http://127.0.0.1:13330/services/subscribe',
-                          text=json.dumps(dict(success=True)))
+                          text=json.dumps(dict(success=True, datas=["127.0.0.1:12220?p=1&v=4.0&_SERIALIZETYPE=hessian2&app_name=someapp"])))
         mesh = MosnClient()
         mesh.startup(self.appmeta)
         mesh.subscribe(self.subinterface)

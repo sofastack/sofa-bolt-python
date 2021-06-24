@@ -73,7 +73,7 @@ class AioClient(_BaseClient):
 
     def invoke_oneway(self, interface, method, content, *, spanctx, **headers):
         header = SofaHeader.build_header(spanctx, interface, method, **headers)
-        pkg = BoltRequest.new_request(header, content, timeout_ms=-1, codec=self._get_serialize_protocol())
+        pkg = BoltRequest.new_request(header, content, timeout_ms=-1, codec=self._get_serialize_protocol(interface))
         asyncio.run_coroutine_threadsafe(self.invoke(pkg), loop=self._loop)
 
     def invoke_sync(self, interface, method, content, *, spanctx, timeout_ms,
@@ -81,7 +81,7 @@ class AioClient(_BaseClient):
         """blocking call to interface, returns responsepkg.content(as bytes)"""
         assert isinstance(timeout_ms, (int, float))
         header = SofaHeader.build_header(spanctx, interface, method, **headers)
-        pkg = BoltRequest.new_request(header, content, timeout_ms=timeout_ms, codec=self._get_serialize_protocol())
+        pkg = BoltRequest.new_request(header, content, timeout_ms=timeout_ms, codec=self._get_serialize_protocol(interface))
         fut = asyncio.run_coroutine_threadsafe(self.invoke(pkg),
                                                loop=self._loop)
         try:
@@ -107,7 +107,7 @@ class AioClient(_BaseClient):
         Callback should recv a bytes object as the only argument, which is the response pkg's content
         """
         header = SofaHeader.build_header(spanctx, interface, method, **headers)
-        pkg = BoltRequest.new_request(header, content, timeout_ms=timeout_ms or -1, codec=self._get_serialize_protocol())
+        pkg = BoltRequest.new_request(header, content, timeout_ms=timeout_ms or -1, codec=self._get_serialize_protocol(interface))
         fut = asyncio.run_coroutine_threadsafe(self.invoke(pkg),
                                                loop=self._loop)
         if callable(callback):

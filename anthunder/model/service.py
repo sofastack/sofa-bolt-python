@@ -41,7 +41,7 @@ class ProviderMetaInfo(object):
     serializeType = attr.ib(default="protobuf")
 
 
-def SubServiceMeta(object):
+class SubServiceMeta(object):
     def __init__(self, address_list: list, metadata=None):
         self.address_list = address_list
         self.metadata = metadata or ProviderMetaInfo()
