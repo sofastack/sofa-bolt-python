@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - fix/switch_ci
   pull_request:
 
 jobs:
