@@ -17,7 +17,6 @@
    File Name : demo.py
    Author : jiaqi.hjq
 """
-from anthunder.model.service import ProviderMetaInfo
 import logging
 
 from mytracer import SpanContext
@@ -28,20 +27,18 @@ from multiprocessing import Process, freeze_support
 import time
 from random import randint
 
-try:
-    from anthunder import AioListener as Listener, AioClient as Client
-except ImportError:
-    from anthunder import SockListener as Listener, Client
+from anthunder import AioListener as Listener, AioClient
 from anthunder import BaseService
 from anthunder.discovery import LocalRegistry
+from anthunder.model import ProviderMetaInfo, SubServiceMeta
 
 from tests.proto.python.SampleServicePbRequest_pb2 import SampleServicePbRequest
 from tests.proto.python.SampleServicePbResult_pb2 import SampleServicePbResult
 
-localaddress = ('127.0.0.1', 12200)
+localaddress = '127.0.0.1:12200'
 localinterface = "com.alipay.rpc.common.service.facade.pb.SampleServicePb:1.0"
 provider = ProviderMetaInfo(appName="test_app")
-registry = LocalRegistry({localinterface: localaddress})
+registry = LocalRegistry({localinterface: SubServiceMeta(localaddress, provider)})
 
 
 class TestSampleServicePb(BaseService):
@@ -90,7 +87,7 @@ def run_client(text):
     print("client start", text)
     spanctx = SpanContext()
 
-    client = Client("test_app", service_register=registry)
+    client = AioClient("test_app", service_register=registry)
 
     content = client.invoke_sync(
         localinterface,

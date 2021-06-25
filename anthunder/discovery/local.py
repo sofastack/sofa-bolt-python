@@ -22,7 +22,7 @@ import logging
 logger = logging.getLogger(__name__)
 from anthunder.helpers.singleton import Singleton
 from anthunder.helpers.immutable_dict import ImmutableValueDict
-from anthunder.model.service import SubServiceMeta, ProviderMetaInfo
+from anthunder.model.service import ProviderMetaInfo
 
 
 class LocalRegistry(object):
@@ -60,7 +60,7 @@ class LocalRegistry(object):
             raise Exception(
                 "No address available for {}, you meed to declare it explicitly in LocalRegistry's init parameter"
                 .format(interface))
-        return meta.address[0]
+        return meta.address
 
     def get_metadata(self, interface: str) -> ProviderMetaInfo:
         meta = self._service_meta_map.get(interface)

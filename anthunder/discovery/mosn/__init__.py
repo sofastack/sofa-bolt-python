@@ -123,7 +123,7 @@ class MosnClient(object):
             raise Exception(
                 "No address available for {}, do you subscribe it?".format(
                     interface))
-        return meta.address[0]
+        return meta.address
 
     def get_metadata(self, interface: str) -> ProviderMetaInfo:
         meta = self._service_meta_dict.get(interface)
