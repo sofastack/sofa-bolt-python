@@ -24,7 +24,7 @@ import requests
 from requests import ConnectionError
 
 from anthunder.helpers.singleton import Singleton
-from anthunder.model.service import ProviderMetaInfo
+from anthunder.model.service import ProviderMetaInfo, SubServiceMeta
 
 
 @attr.s
@@ -63,7 +63,10 @@ class ApplicationInfo(object):
 class MosnClient(object):
     __metaclass__ = Singleton
 
-    def __init__(self, *, keep_alive=True, service_api="http://127.0.0.1:13330/"):
+    def __init__(self,
+                 *,
+                 keep_alive=True,
+                 service_api="http://127.0.0.1:13330/"):
         """
         :param appinfo: application infomation data, see ApplicationInfo's comments.
         :type appinfo: ApplicationInfo, see ApplicationInfo's comments.
@@ -73,6 +76,7 @@ class MosnClient(object):
         self._started = False
         self.keep_alive = keep_alive
         self.service_api = service_api
+        self._service_meta_dict = {}
 
     def startup(self, appinfo: ApplicationInfo):
         with self._rlock:
@@ -83,8 +87,14 @@ class MosnClient(object):
             return self._started
 
     def subscribe(self, interface: str):
-        # TODO: parse response and put to a service map (with metaInfo)
-        return self._post("services/subscribe", dict(serviceName=interface))
+        # subscribe returns: `json:"errorMessage"`
+        #                    `json:"success"`
+        #                    `json:"serviceName"`
+        #                    `json:"datas"`
+        ret = self._post("services/subscribe", dict(serviceName=interface))
+        meta = SubServiceMeta.from_bolt_url(ret["datas"][0])
+        self._service_meta_dict[interface] = meta
+        return
 
     def unsubscribe(self, interface: str):
         return self._post("services/unsubscribe", dict(serviceName=interface))
@@ -98,14 +108,28 @@ class MosnClient(object):
         req = PublishServiceRequest(port=str(address[1]),
                                     serviceName=interface,
                                     providerMetaInfo=provider)
+
         return self._post("services/publish", attr.asdict(req))
 
     def unpublish(self, interface: str):
         return self._post("services/unpublish", dict(serviceName=interface))
 
-    def get_address(self, interface: str):
-        # TODO: should use address from subscribe result, and translate addresses and providerMetaInfo
-        return ("127.0.0.1", 12220)
+    def get_address(self, interface: str) -> str:
+        """
+        :return: address str
+        """
+        meta = self._service_meta_dict.get(interface)
+        if meta is None:
+            raise Exception(
+                "No address available for {}, do you subscribe it?".format(
+                    interface))
+        return meta.address
+
+    def get_metadata(self, interface: str) -> ProviderMetaInfo:
+        meta = self._service_meta_dict.get(interface)
+        if meta is None:
+            raise Exception( "No available interface for {}, do you subscribe it?".format( interface))
+        return meta.metadata
 
     def _post(self, endpoint, json):
         addr = self.service_api + endpoint

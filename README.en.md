@@ -14,7 +14,7 @@ It supports RPC calling via 'sofa-bolt + protobuf' protocol.
 - [x] bolt client(protobuf serialization)
 - [x] service discover via mosn (sofa servicemesh sidecar)
 - [x] bolt server(protobuf serialization)
-- [ ] hessian2 serialization support
+- [x] sofa-hessian(and other) serialization protocol support
 
 ## Tutorial
 

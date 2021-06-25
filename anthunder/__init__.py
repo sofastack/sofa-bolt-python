@@ -24,12 +24,9 @@
 
 __all__ = [
     'Client', 'SockListener', 'BaseService', 'Request', 'AioListener',
-    'AioClient'
+    'AioClient', 'ProviderMetaInfo'
 ]
 
-from anthunder.client.client import Client
-from anthunder.listener.sock_listener import SockListener
-from anthunder.model.service import BaseService
-from anthunder.request import Request
-from anthunder.listener.aio_listener import AioListener
-from anthunder.client.aio_client import AioClient
+from anthunder.client import Client, AioClient
+from anthunder.listener import SockListener, AioListener
+from anthunder.model import BaseService, ProviderMetaInfo, Request

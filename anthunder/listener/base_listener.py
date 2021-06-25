@@ -56,6 +56,8 @@ class BaseListener(object):
         :type address: tuple (host:str, port:int)
         Check ApplicationInfo's comment for other params' explanations.
         """
+        if isinstance(address, str):
+            address = address.split(':', 2)
         self.address = address
         self.app_name = app_name
         self.server_kwargs = server_kwargs

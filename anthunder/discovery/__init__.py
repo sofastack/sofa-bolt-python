@@ -17,7 +17,6 @@
    File Name : __init__.py
    Author : jiaqi.hjq
 """
-__all__ = ['MosnClient', 'LocalRegistry']
+__all__ = ['LocalRegistry']
 
-from .mosn import MosnClient
 from .local import LocalRegistry

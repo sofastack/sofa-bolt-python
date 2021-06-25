@@ -19,6 +19,8 @@
 """
 import logging
 
+from anthunder.protocol.constants import CODEC
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,14 +28,29 @@ class _BaseClient(object):
     """
     Basic class for client implementation. Provides subscribe/unsubscribe method.
     """
-    def __init__(self, app_name, *, service_register=None):
+    def __init__(self, app_name, *, service_register):
         """
         Check ApplicationInfo's comment for params' explanations.
         """
         self._service_register = service_register
 
-    def _get_address(self, interface):
-        return self._service_register.get_address(interface)
+    def _get_address(self, interface) -> tuple:
+        if interface is None:
+            # on heartbeat, interface would be None.
+            # for compatibility, return localaddress.
+            return ("127.0.0.1", 12220)
+        addstr = self._service_register.get_address(interface)
+        addstup = addstr.split(':', 2)
+        return addstup[0], int(addstup[1])
+
+    def _get_serialize_protocol(self, interface):
+        meta = self._service_register.get_metadata(interface)
+        if meta.serializeType == "hessian2":
+            return CODEC.HESSIAN
+        if meta.serializeType == "protobuf":
+            return CODEC.PROTOBUF
+        raise ValueError("Unknown serializeType {} of interface {}".format(
+            meta.serializeType, interface))
 
     def invoke_sync(self, interface, method, content, **kwargs):
         raise NotImplementedError()

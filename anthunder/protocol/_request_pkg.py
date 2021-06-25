@@ -46,6 +46,6 @@ class BoltRequest(BoltPackage):
             raise EncodeError(e)
 
     @classmethod
-    def new_request(cls, header, content, ptype=PTYPE.REQUEST, timeout_ms=None):
+    def new_request(cls, header, content, ptype=PTYPE.REQUEST, timeout_ms=None, **kwargs):
         return cls(header, content, ptype=ptype, cmdcode=CMDCODE.REQUEST,
-                   request_id=next(RequestId), timeout=timeout_ms or -1)
+                   request_id=next(RequestId), timeout=timeout_ms or -1, **kwargs)
