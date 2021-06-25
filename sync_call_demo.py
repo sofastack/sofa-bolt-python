@@ -35,6 +35,9 @@ from anthunder.model import ProviderMetaInfo, SubServiceMeta
 from tests.proto.python.SampleServicePbRequest_pb2 import SampleServicePbRequest
 from tests.proto.python.SampleServicePbResult_pb2 import SampleServicePbResult
 
+
+# Here we use LocalRegistry with local address for test purposes.
+# see sample script in README for using MosnClient for service discovery
 localaddress = '127.0.0.1:12200'
 localinterface = "com.alipay.rpc.common.service.facade.pb.SampleServicePb:1.0"
 provider = ProviderMetaInfo(appName="test_app")
