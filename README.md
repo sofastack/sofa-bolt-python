@@ -6,10 +6,12 @@
 [![Python](https://img.shields.io/pypi/pyversions/anthunder.svg)](https://pypi.org/project/anthunder/)
 [![devstatus](https://img.shields.io/pypi/status/anthunder.svg)](https://pypi.org/project/anthunder/)
 [![Build Status](https://img.shields.io/travis/sofastack/sofa-bolt-python/master.svg)](https://travis-ci.org/sofastack/sofa-bolt-python)
+[![Build Status](./actions/workflows/unittest.yml/badge.svg)](./actions)
+
 [![codecov](https://img.shields.io/codecov/c/gh/sofastack/sofa-bolt-python/master.svg)](https://codecov.io/gh/sofastack/sofa-bolt-python)
 [![codebeat](https://codebeat.co/badges/59c6418c-72a1-4229-b363-686a2640e9d5)](https://codebeat.co/projects/github-com-alipay-sofa-bolt-python-master)
 
-See [English README](https://github.com/sofastack/sofa-bolt-python/blob/master/README.en.md)
+See [English README](./blob/master/README.en.md)
 
 anthunder是一个python实现的BOLT协议库，提供BOLT client和server功能，支持使用BOLT + Protobuf方式的RPC调用。
 
