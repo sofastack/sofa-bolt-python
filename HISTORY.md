@@ -1,4 +1,9 @@
 # Release History
+## 0.9 (2021-06-25)
+### Feature
+ - obtain service metadata from subscriber
+ - support serialize type (other than protobuf) set in service metadata
+
 ## 0.8.1 (2021-05-31)
 ### Feature
  - drop support for python 2.7
