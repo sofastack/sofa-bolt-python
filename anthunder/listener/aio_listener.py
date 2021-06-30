@@ -217,8 +217,8 @@ class AioListener(BaseListener):
                     fixed_header_bs = await reader.readexactly(BoltRequest.bolt_header_size())
                 except asyncio.IncompleteReadError:
                     if first_req:
-                        # just connected, log an error
-                        logging.error("Connection lost on first request")
+                        # just connected, do nothing. most likely L4 health checks from mosn/upstream
+                        break
                     # break the loop
                     raise
 
