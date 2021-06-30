@@ -204,6 +204,14 @@ class AioListener(BaseListener):
         writer.write(msg)
         await writer.drain()
 
+    async def _close_writer(self, writer):
+        try:
+            writer.write_eof()
+            await writer.drain()
+        except:
+            pass
+        writer.close()
+
     async def _handler_connection(self, reader, writer):
         """
         Full duplex model
@@ -218,6 +226,7 @@ class AioListener(BaseListener):
                 except asyncio.IncompleteReadError:
                     if first_req:
                         # just connected, do nothing. most likely L4 health checks from mosn/upstream
+                        await self._close_writer(writer)
                         break
                     # break the loop
                     raise
@@ -279,12 +288,7 @@ class AioListener(BaseListener):
                                                           RESPSTATUS.CONNECTION_CLOSED).to_stream())
                 except:
                     pass
-                try:
-                    writer.write_eof()
-                    await writer.drain()
-                except:
-                    pass
-                writer.close()
+                await self._close_writer(writer)
                 break
 
             except Exception:
@@ -295,10 +299,5 @@ class AioListener(BaseListener):
                     writer.write(FailResponse.response_to(header['request_id'], RESPSTATUS.UNKNOWN).to_stream())
                 except:
                     pass
-                try:
-                    writer.write_eof()
-                    await writer.drain()
-                except:
-                    pass
-                writer.close()
+                await self._close_writer(writer)
                 break
