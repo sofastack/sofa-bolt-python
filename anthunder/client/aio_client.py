@@ -210,7 +210,7 @@ class AioClient(_BaseClient):
                 await writer.drain()  # avoid back pressure
                 writer.write(request.to_stream())
                 await writer.drain()
-            except Exception as e:
+            except Exception as e:  # pragma: no cover
                 logger.error(
                     "Request sent to {} failed: {}, may try again.".format(
                         address, e))
