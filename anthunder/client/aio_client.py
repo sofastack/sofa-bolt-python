@@ -210,13 +210,13 @@ class AioClient(_BaseClient):
                 await writer.drain()  # avoid back pressure
                 writer.write(request.to_stream())
                 await writer.drain()
-            except Exception as e:
+            except Exception as e:  # pragma: no cover
                 logger.error(
                     "Request sent to {} failed: {}, may try again.".format(
                         address, e))
                 readtask.cancel()
-                self.connection_mapping.pop(address)
-                self._pending_dial.pop(address)
+                self.connection_mapping.pop(address, None)
+                self._pending_dial.pop(address, None)
                 await _send(retry - 1)
 
         # generate event object first, ensure every successfully sent request has a event
